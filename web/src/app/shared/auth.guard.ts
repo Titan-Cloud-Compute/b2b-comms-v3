@@ -15,8 +15,11 @@ export const authGuard: CanActivateFn = async (_route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
   const authApi = inject(AuthApi);
-  if (auth.user()) return true;
+  // Preview builds have no backend: the cached (preview) user is the session.
+  if (PREVIEW_MODE && auth.user()) return true;
   if (!PREVIEW_MODE) {
+    // Always confirm the session server-side; a cached localStorage user
+    // outlives logout-in-another-tab and expired cookies.
     const me = (await authApi.me()) as
       | { id: string; email: string; role?: string; name?: string; displayName?: string }
       | null;
@@ -31,6 +34,7 @@ export const authGuard: CanActivateFn = async (_route, state) => {
       return true;
     }
   }
+  auth.setUser(null);
   return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
 };
 

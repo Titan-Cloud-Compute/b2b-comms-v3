@@ -66,7 +66,8 @@ export const apiErrorInterceptor: HttpInterceptorFn = (req, next) => {
               // Carry the interrupted destination so login can return the
               // user there instead of the role default (standard returnUrl
               // round-trip; login validates it as an internal path).
-              const returnUrl = router.url;
+              const pending = router.getCurrentNavigation()?.extractedUrl;
+              const returnUrl = pending ? router.serializeUrl(pending) : router.url;
               void router.navigate(
                 ['/login'],
                 returnUrl && returnUrl !== '/' ? { queryParams: { returnUrl } } : {},

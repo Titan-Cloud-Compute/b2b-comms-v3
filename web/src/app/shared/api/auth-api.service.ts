@@ -107,7 +107,11 @@ export class AuthApi {
    */
   async me(): Promise<{ id: string; email: string; role?: string; displayName?: string } | null> {
     try {
-      return await this.api.get<{ id: string; email: string; role?: string; displayName?: string }>('users/me');
+      return await this.api.get<{ id: string; email: string; role?: string; displayName?: string }>('users/me', {
+        // The auth guard owns the anonymous redirect (with returnUrl); the
+        // interceptor must not race it with its own bare /login navigation.
+        skipAuthRedirect: true,
+      });
     } catch {
       return null;
     }
