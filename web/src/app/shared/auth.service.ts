@@ -8,11 +8,24 @@ export interface User {
   email: string;
   name: string;
   firmName?: string;
-  role: 'USER' | 'ADMIN' | 'SUPER_ADMIN';
+  role: 'USER' | 'MANAGER' | 'ADMIN' | 'SUPER_ADMIN';
   firmId?: string;
+  organizationId?: string | null;
+  active?: boolean;
 }
 
-const ROLES: readonly User['role'][] = ['USER', 'ADMIN', 'SUPER_ADMIN'];
+const ROLES: readonly User['role'][] = ['USER', 'MANAGER', 'ADMIN', 'SUPER_ADMIN'];
+
+/** Identity shape returned by GET /api/users/me (and login / auth/me). */
+interface ServerIdentity {
+  id?: string;
+  email?: string;
+  name?: string | null;
+  displayName?: string | null;
+  role?: string;
+  organizationId?: string | null;
+  active?: boolean;
+}
 
 /**
  * Parse a persisted user, returning null for anything that is not a valid
@@ -105,6 +118,68 @@ export class AuthService {
    * `document.baseURI` so it survives the path prefix the staging ingress adds
    * (plain `fetch` would otherwise resolve relative to the current hash route).
    */
+  // One server check per page load / session start; reset by setUser().
+  private _verified: Promise<boolean> | null = null;
+
+  /**
+   * Server-checked session: asks GET /api/users/me whether the cookie session
+   * is still valid and refreshes the cached identity (role, organization,
+   * active) from the response. A 401/403, a deactivated account or an
+   * unreadable answer clears the local session and resolves false.
+   */
+  verifySession(): Promise<boolean> {
+    if (PREVIEW_MODE) return Promise.resolve(this._user() !== null);
+    if (!this._user()) return Promise.resolve(false);
+    if (!this._verified) {
+      const pending = this.fetchIdentity();
+      this._verified = pending;
+      void pending.then((ok) => {
+        if (!ok && this._verified === pending) this._verified = null;
+      });
+    }
+    return this._verified;
+  }
+
+  private async fetchIdentity(): Promise<boolean> {
+    let url = 'api/users/me';
+    try {
+      url = new URL('api/users/me', document.baseURI).toString();
+    } catch {
+      /* keep relative */
+    }
+    try {
+      const res = await fetch(url, { credentials: 'include' });
+      if (!res.ok) {
+        this.setUser(null);
+        return false;
+      }
+      const body = (await res.json().catch(() => null)) as ServerIdentity | null;
+      if (!body || typeof body !== 'object' || Array.isArray(body) || body.active === false) {
+        this.setUser(null);
+        return false;
+      }
+      const current = this._user();
+      if (!current) return false;
+      const role = ROLES.includes(body.role as User['role'])
+        ? (body.role as User['role'])
+        : current.role;
+      const next: User = {
+        ...current,
+        id: typeof body.id === 'string' && body.id ? body.id : current.id,
+        email: typeof body.email === 'string' && body.email ? body.email : current.email,
+        name: body.displayName || body.name || current.name,
+        role,
+        organizationId: body.organizationId ?? current.organizationId ?? null,
+        active: body.active ?? true,
+      };
+      this._user.set(next);
+      this.write('user', JSON.stringify(next));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   private prefsUrl(): string {
     try {
       return new URL('api/users/me/notification-preferences', document.baseURI).toString();
@@ -225,6 +300,8 @@ export class AuthService {
 
   setUser(user: User | null) {
     this._user.set(user);
+    // A fresh login is itself server-verified; a sign-out must re-check.
+    this._verified = user ? Promise.resolve(true) : null;
     if (user) {
       this.write('user', JSON.stringify(user));
       this.write('token', 'demo-token-' + user.id);

@@ -21,6 +21,7 @@ import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { RequireAdmin } from './roles.guard';
 import { Public } from './decorators/public.decorator';
+import { toIdentity } from './auth-identity';
 import type { SessionPayload } from './session.types';
 import {
   SESSION_COOKIE_NAME,
@@ -80,7 +81,7 @@ export class AuthController {
     const parsed = LoginSchema.parse(body);
     const { user, token } = await this.authService.login(parsed);
     this.setSessionCookie(res, token);
-    return { id: user.id, email: user.email, role: user.role };
+    return toIdentity(user);
   }
 
   @Public()
@@ -135,7 +136,7 @@ export class AuthController {
   async getMe(@Req() req: Request) {
     const { userId } = req.session!;
     const user = await this.authService.getCurrentUser(userId);
-    return { id: user.id, email: user.email, name: user.name, role: user.role };
+    return toIdentity(user);
   }
 
   /** Update the signed-in user's editable profile (display name). */
