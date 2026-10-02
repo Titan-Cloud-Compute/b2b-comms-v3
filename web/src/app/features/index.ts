@@ -23,7 +23,11 @@ import { ACTIVE_QUESTION_CHATS_ROUTES } from './active-question-chats/active-que
 // Message Reference and Annotation: projects/:id/references/new, projects/:id/references/:referenceId
 import { MESSAGE_REFERENCE_AND_ANNOTATION_ROUTES } from './message-reference-and-annotation/message-reference-and-annotation.routes';
 
+// Unread Message Indicators: projects/:id/channels (channel list with unread bubbles)
+import { UNREAD_MESSAGE_INDICATORS_ROUTES } from './unread-message-indicators/unread-message-indicators.routes';
+
 export const FEATURE_ROUTES: Routes = [
+  ...UNREAD_MESSAGE_INDICATORS_ROUTES,
   ...MESSAGE_REFERENCE_AND_ANNOTATION_ROUTES,
   ...GENERAL_CHANNELS_ROUTES,
   ...ACTIVE_QUESTION_CHATS_ROUTES,
