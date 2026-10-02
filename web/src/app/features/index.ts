@@ -41,6 +41,17 @@ export const FEATURE_ROUTES: Routes = [
     loadComponent: () =>
       import('./general-channels/channel.component').then(m => m.ChannelComponent),
   },
+  // Story: Message Reference and Annotation. 'references/new' must precede 'references/:referenceId'.
+  {
+    path: 'projects/:id/references/new',
+    loadComponent: () =>
+      import('./references/reference-editor.component').then(m => m.ReferenceEditorComponent),
+  },
+  {
+    path: 'projects/:id/references/:referenceId',
+    loadComponent: () =>
+      import('./references/reference-viewer.component').then(m => m.ReferenceViewerComponent),
+  },
   {
     path: 'projects/:id',
     loadComponent: () =>
