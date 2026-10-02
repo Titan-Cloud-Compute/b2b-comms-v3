@@ -55,7 +55,7 @@ async function login(page: Page): Promise<void> {
   await page.locator('#email').fill('user@example.com');
   await page.locator('#password').fill('password1234');
   await page.locator('button[type="submit"]').click();
-  await expect(page).toHaveURL(/#\/dashboard/, { timeout: 10_000 });
+  await expect(page).toHaveURL(/#\/projects/, { timeout: 10_000 });
 }
 
 test.use({ serviceWorkers: 'block' });

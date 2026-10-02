@@ -10,14 +10,6 @@ export const routes: Routes = [
     redirectTo: 'projects',
     pathMatch: 'full'
   },
-  {
-    // Feature routes (stories append to FEATURE_ROUTES) are session-only.
-    // Componentless guarded parent sharing the registry array by reference.
-    path: '',
-    canActivate: [authGuard],
-    canActivateChild: [authChildGuard],
-    children: FEATURE_ROUTES
-  },
   // Public story routes (e.g. /accept-invite/:token) — no session required.
   ...AUTHENTICATION_AND_ROLES_PUBLIC_ROUTES,
   {
@@ -59,12 +51,16 @@ export const routes: Routes = [
     data: { hideSupportFooter: true }
   },
   {
+    // All session-only routes render inside the layout shell (sidebar + main area).
+    // Feature routes (FEATURE_ROUTES from stories) are spread first so new pages
+    // automatically inherit the shell without touching this file.
     path: '',
     loadComponent: () => import('./shared/layout.component').then(m => m.LayoutComponent),
     data: { rendersSupportFooterInLayout: true },
     canActivate: [authGuard],
     canActivateChild: [authChildGuard],
     children: [
+      ...FEATURE_ROUTES,
       {
         path: 'dashboard',
         loadComponent: () => import('./dashboard/dashboard.component').then(m => m.DashboardComponent)

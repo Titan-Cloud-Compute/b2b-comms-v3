@@ -1,43 +1,21 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../shared/auth.service';
-import {
-  ORGANIZATION_TYPES,
-  OrganizationType,
-  ProjectListItem,
-  ProjectsApiService,
-} from './projects-api.service';
+import { ProjectListItem, ProjectsApiService } from './projects-api.service';
 import { projectErrorMessage } from './project-errors';
 
 @Component({
   selector: 'app-project-list',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [RouterLink],
   template: `
-    <section class="projects" data-testid="project-list-page">
-      <h1>Projects</h1>
-
-      @if (canCreate()) {
-        <form class="create" data-testid="create-project-form" (ngSubmit)="create()">
-          <label>
-            External organization name
-            <input name="orgName" [(ngModel)]="orgName" data-testid="create-project-name" />
-          </label>
-          <label>
-            Type
-            <select name="orgType" [(ngModel)]="orgType" data-testid="create-project-type">
-              @for (t of types; track t) {
-                <option [value]="t">{{ t }}</option>
-              }
-            </select>
-          </label>
-          <button type="submit" [disabled]="saving()">Create project</button>
-          @if (createError()) {
-            <p class="error" role="alert">{{ createError() }}</p>
-          }
-        </form>
-      }
+    <section class="projects" data-testid="project-list-page" data-placeholder>
+      <header class="projects-header">
+        <h1>Projects</h1>
+        @if (canCreate()) {
+          <a routerLink="/projects/new" class="btn-new" data-testid="new-project-link">New project</a>
+        }
+      </header>
 
       @if (loading()) {
         <p>Loading projects...</p>
@@ -48,7 +26,7 @@ import { projectErrorMessage } from './project-errors';
       } @else {
         <ul data-testid="project-list">
           @for (p of projects(); track p.id) {
-            <li data-testid="project-list-item">
+            <li data-testid="project-row">
               <a [routerLink]="['/projects', p.id]">{{ p.organization.name || p.name }}</a>
               <span class="type">{{ p.organization.type }}</span>
             </li>
@@ -59,8 +37,10 @@ import { projectErrorMessage } from './project-errors';
   `,
   styles: [
     '.projects { padding: 1.5rem; max-width: 48rem; }',
-    '.create { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end; margin-bottom: 1.5rem; }',
-    '.create label { display: flex; flex-direction: column; gap: 0.25rem; }',
+    '.projects-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }',
+    '.projects-header h1 { margin: 0; flex: 1; }',
+    '.btn-new { padding: 0.5rem 1rem; background: #4f46e5; color: #fff; border-radius: 0.375rem; text-decoration: none; font-size: 0.875rem; }',
+    '.btn-new:hover { background: #4338ca; }',
     'ul { list-style: none; padding: 0; }',
     'li { display: flex; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb; }',
     '.type { color: #6b7280; }',
@@ -70,17 +50,10 @@ import { projectErrorMessage } from './project-errors';
 export class ProjectListComponent implements OnInit {
   private api = inject(ProjectsApiService);
   private auth = inject(AuthService);
-  private router = inject(Router);
 
-  readonly types = ORGANIZATION_TYPES;
   readonly projects = signal<ProjectListItem[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
-  readonly saving = signal(false);
-  readonly createError = signal<string | null>(null);
-
-  orgName = '';
-  orgType: OrganizationType = 'vendor';
 
   readonly canCreate = computed(() => {
     const role = this.auth.user()?.role;
@@ -101,25 +74,6 @@ export class ProjectListComponent implements OnInit {
       this.error.set(projectErrorMessage(err, 'Could not load projects.'));
     } finally {
       this.loading.set(false);
-    }
-  }
-
-  async create(): Promise<void> {
-    const name = this.orgName.trim();
-    if (!name) {
-      this.createError.set('Organization name is required.');
-      return;
-    }
-    this.saving.set(true);
-    this.createError.set(null);
-    try {
-      const created = await this.api.create({ organization_name: name, organization_type: this.orgType });
-      this.orgName = '';
-      await this.router.navigate(['/projects', created.id]);
-    } catch (err) {
-      this.createError.set(projectErrorMessage(err, 'Could not create project.'));
-    } finally {
-      this.saving.set(false);
     }
   }
 }
