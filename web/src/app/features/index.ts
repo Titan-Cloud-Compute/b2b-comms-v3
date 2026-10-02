@@ -35,6 +35,12 @@ export const FEATURE_ROUTES: Routes = [
     path: 'projects/:id/files/:folderId',
     loadComponent: () => import('./files/file-explorer.component').then(m => m.FileExplorerComponent),
   },
+  // Active Questions. Must precede 'projects/:id' for matching.
+  {
+    path: 'projects/:id/questions/:channelId',
+    loadComponent: () =>
+      import('./active-questions/active-question.component').then(m => m.ActiveQuestionComponent),
+  },
   // General Channels. Must precede the bare 'projects/:id' entry for readability (Angular matches full paths).
   {
     path: 'projects/:id/channels/:channelId',
