@@ -3,11 +3,10 @@ import { FEATURE_ROUTES } from './features/index';
 import { authGuard } from './shared/auth.guard';
 
 export const routes: Routes = [
-  // Every feature route is signed-in only.
-  ...FEATURE_ROUTES.map(r => (r.redirectTo ? r : { ...r, canActivate: [authGuard, ...(r.canActivate ?? [])] })),
+  // Public landing page at the root.
   {
     path: '',
-    redirectTo: 'dashboard',
+    loadComponent: () => import('./landing/landing.component').then(m => m.LandingComponent),
     pathMatch: 'full'
   },
   {
@@ -59,6 +58,7 @@ export const routes: Routes = [
     data: { rendersSupportFooterInLayout: true },
     canActivate: [authGuard],
     children: [
+      ...FEATURE_ROUTES,
       {
         path: 'dashboard',
         loadComponent: () => import('./dashboard/dashboard.component').then(m => m.DashboardComponent)
