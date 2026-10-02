@@ -26,6 +26,15 @@ export const FEATURE_ROUTES: Routes = [
     loadComponent: () =>
       import('./projects/project-new.component').then(m => m.ProjectNewComponent),
   },
+  // Story: File Explorer
+  {
+    path: 'projects/:id/files',
+    loadComponent: () => import('./files/file-explorer.component').then(m => m.FileExplorerComponent),
+  },
+  {
+    path: 'projects/:id/files/:folderId',
+    loadComponent: () => import('./files/file-explorer.component').then(m => m.FileExplorerComponent),
+  },
   {
     path: 'projects/:id',
     loadComponent: () =>
