@@ -4,7 +4,7 @@ import { AuthService } from './auth.service';
 
 /**
  * Server-checked route guard. Every guarded navigation asks the backend
- * (GET /api/auth/me, falling back to /api/users/me) whether the session cookie
+ * (GET /api/auth/me) whether the session cookie
  * is valid; with no session the visitor is sent to /login carrying a returnUrl
  * so the login form can send them back after signing in.
  */

@@ -198,19 +198,15 @@ export class LoginComponent {
       // Route based on role.
       // on the layout route is the single source of truth and bounces
       // unfinished-intake users back to their spot in the conversation.
-      if (this.auth.hasAdminRole()) {
+      // returnUrl round-trip for every role: INTERNAL paths only — '/x...'
+      // but not '//x' — so the query param can never become an open redirect.
+      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+      if (returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//')) {
+        this.router.navigateByUrl(returnUrl);
+      } else if (this.auth.hasAdminRole()) {
         this.router.navigate(['/admin/overview']);
       } else {
-        // returnUrl round-trip: when the session-expiry redirect carried the
-        // interrupted destination (e.g. /integrations), resume there instead
-        // of the default. INTERNAL paths only — '/x...' but not '//x' — so
-        // the query param can never become an open redirect.
-        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-        if (returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//')) {
-          this.router.navigateByUrl(returnUrl);
-        } else {
-          this.router.navigate(['/dashboard']);
-        }
+        this.router.navigate(['/dashboard']);
       }
     } catch (err) {
       if (err instanceof UnauthorizedError) {
@@ -254,8 +250,10 @@ export class LoginComponent {
 
   private mapRole(
     backendRole: string,
-  ): 'USER' | 'ADMIN' | 'SUPER_ADMIN' {
+  ): 'USER' | 'MANAGER' | 'ADMIN' | 'SUPER_ADMIN' {
     switch (backendRole) {
+      case 'MANAGER':
+        return 'MANAGER';
       case 'ADMIN':
         return 'ADMIN';
       case 'SUPER_ADMIN':
