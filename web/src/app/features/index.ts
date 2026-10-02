@@ -14,4 +14,6 @@ import { Routes } from '@angular/router';
  *
  * Or add routes here directly.
  */
-export const FEATURE_ROUTES: Routes = [];
+import { PROJECTS_AND_EXTERNAL_ORGANIZATION_SPACES_ROUTES } from './projects-and-external-organization-spaces/projects-and-external-organization-spaces.routes';
+
+export const FEATURE_ROUTES: Routes = [...PROJECTS_AND_EXTERNAL_ORGANIZATION_SPACES_ROUTES];

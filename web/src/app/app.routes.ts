@@ -7,7 +7,7 @@ export const routes: Routes = [
   {
     // Signed-in home; the guard bounces anonymous visitors to /login.
     path: '',
-    redirectTo: 'dashboard',
+    redirectTo: 'projects',
     pathMatch: 'full'
   },
   {
