@@ -11,6 +11,7 @@ import {
   BadRequestError,
 } from '../shared/api/api-errors';
 import { PREVIEW_MODE } from '../shared/preview/preview-mode';
+import { postLoginRoute } from './post-login-route';
 
 @Component({
   selector: 'app-login',
@@ -203,17 +204,11 @@ export class LoginComponent {
       // there. INTERNAL paths only — '/x...' but not '//x' — so the query
       // param can never become an open redirect.
       const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-      if (returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//') && !returnUrl.startsWith('/login')) {
-        this.router.navigateByUrl(returnUrl);
-      } else if (this.auth.hasAdminRole()) {
-        this.router.navigate(['/admin/overview']);
-      } else {
-        this.router.navigate(['/dashboard']);
-      }
+      this.router.navigateByUrl(postLoginRoute(result.role, returnUrl));
     } catch (err) {
       if (err instanceof UnauthorizedError) {
         this.error.set(
-          'Invalid email or password',
+          'Invalid credentials',
         );
       } else if (err instanceof BadRequestError) {
         this.error.set(
@@ -247,7 +242,7 @@ export class LoginComponent {
             role: 'USER',
           },
     );
-    this.router.navigate([isAdmin ? '/admin/overview' : '/dashboard']);
+    this.router.navigateByUrl(postLoginRoute(isAdmin ? 'ADMIN' : 'USER'));
   }
 
   private mapRole(

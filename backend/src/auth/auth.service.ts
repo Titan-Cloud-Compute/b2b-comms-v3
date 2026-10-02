@@ -219,7 +219,7 @@ export class AuthService {
       tx.user.findUnique({ where: { email } }),
     );
     if (!user || !user.passwordHash) {
-      throw new UnauthorizedException('invalid credentials');
+      throw new UnauthorizedException('Invalid credentials');
     }
     let ok = false;
     try {
@@ -227,7 +227,7 @@ export class AuthService {
     } catch {
       ok = false;
     }
-    if (!ok) throw new UnauthorizedException('invalid credentials');
+    if (!ok) throw new UnauthorizedException('Invalid credentials');
     // Deactivated accounts cannot sign in (null = legacy row, treated active).
     if (user.active === false) {
       throw new UnauthorizedException('account is deactivated');

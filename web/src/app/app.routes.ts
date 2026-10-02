@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { FEATURE_ROUTES } from './features/index';
+import { AUTHENTICATION_AND_ROLES_PUBLIC_ROUTES } from './features/authentication-and-roles/authentication-and-roles.routes';
 import { authGuard, authChildGuard } from './shared/auth.guard';
 
 export const routes: Routes = [
@@ -17,6 +18,8 @@ export const routes: Routes = [
     canActivateChild: [authChildGuard],
     children: FEATURE_ROUTES
   },
+  // Public story routes (e.g. /accept-invite/:token) — no session required.
+  ...AUTHENTICATION_AND_ROLES_PUBLIC_ROUTES,
   {
     path: 'login',
     loadComponent: () => import('./login/login.component').then(m => m.LoginComponent),

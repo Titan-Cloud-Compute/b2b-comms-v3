@@ -8,9 +8,12 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 import type { SessionPayload } from './session.types';
 import { IS_PUBLIC_KEY } from './decorators/public.decorator';
+// Value import (NOT `import type`): Nest needs the runtime token to inject it.
+import { PrismaService } from '../prisma/prisma.service';
+import { SESSION_COOKIE_NAME, sessionCookieOptions } from './session-cookie';
 
 /**
  * JwtAuthGuard reads the session cookie (default name 'session'), verifies the
@@ -49,6 +52,7 @@ export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwt: JwtService,
     private readonly reflector: Reflector,
+    private readonly prisma: PrismaService,
   ) {}
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
@@ -70,6 +74,25 @@ export class JwtAuthGuard implements CanActivate {
     } catch (err) {
       this.logger.warn(`JWT verify failed: ${err instanceof Error ? err.message : err}`);
       throw new UnauthorizedException('invalid session');
+    }
+    // Session enforcement: re-read the user on EVERY request so an admin's
+    // deactivation or role change takes effect on the user's next request.
+    // A deleted or deactivated user's session is revoked: the cookie is
+    // cleared and the request fails with 401.
+    const user = await this.prisma.runAsAdmin((tx) =>
+      tx.user.findUnique({
+        where: { id: payload.userId },
+        select: { id: true, role: true, active: true, organizationId: true },
+      }),
+    );
+    if (!user || user.active === false) {
+      const res = ctx.switchToHttp().getResponse<Response>();
+      res?.clearCookie?.(SESSION_COOKIE_NAME, sessionCookieOptions(0));
+      throw new UnauthorizedException('session revoked');
+    }
+    // Impersonation sessions keep their deliberately downgraded role.
+    if (!payload.impersonatedBy) {
+      payload = { ...payload, role: user.role };
     }
     req.session = payload;
     // Read-only enforcement for impersonation sessions (thrown OUTSIDE the
