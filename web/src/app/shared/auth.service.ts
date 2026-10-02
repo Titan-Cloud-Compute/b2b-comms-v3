@@ -10,6 +10,8 @@ export interface User {
   firmName?: string;
   role: 'USER' | 'MANAGER' | 'ADMIN' | 'SUPER_ADMIN';
   firmId?: string;
+  organizationId?: string;
+  active?: boolean;
 }
 
 const ROLES: readonly User['role'][] = ['USER', 'MANAGER', 'ADMIN', 'SUPER_ADMIN'];
@@ -253,48 +255,66 @@ export class AuthService {
 
   /**
    * Ask the server whether the session cookie is still valid. Uses `fetch`
-   * (not ApiClient) to avoid a DI cycle with the HTTP layer. Tries
-   * GET /api/auth/me first, then GET /api/users/me. Resolves true only when the
-   * server returns an identity; clears the local session otherwise.
+   * (not ApiClient) to avoid a DI cycle with the HTTP layer. Fetches
+   * GET /api/users/me with credentials:'include'. Resolves true only when the
+   * server returns an active identity; clears the local session otherwise.
    */
   async verifySession(): Promise<boolean> {
     if (PREVIEW_MODE) return this.isAuthenticated();
-    for (const path of ['api/auth/me']) {
-      let url = path;
-      try {
-        url = new URL(path, document.baseURI).toString();
-      } catch {
-        /* fall back to relative path */
-      }
-      try {
-        const res = await fetch(url, { credentials: 'include' });
-        if (res.status === 401 || res.status === 403) break;
-        if (!res.ok) continue;
-        const body = (await res.json().catch(() => null)) as Partial<User> | null;
-        if (body && typeof body === 'object' && !Array.isArray(body) && typeof body.id === 'string' && body.id) {
-          const current = this._user();
-          if (!current || current.id !== body.id) {
-            const role = ROLES.includes(body.role as User['role']) ? (body.role as User['role']) : 'USER';
-            this.setUser({
-              ...(current ?? {}),
-              ...body,
-              id: body.id,
-              email: typeof body.email === 'string' ? body.email : current?.email ?? '',
-              name: typeof body.name === 'string' ? body.name : (body.email as string) ?? '',
-              role,
-            } as User);
-          }
-          return true;
-        }
-      } catch {
-        /* network failure — try the next endpoint */
-      }
+    let url = 'api/users/me';
+    try {
+      url = new URL('api/users/me', document.baseURI).toString();
+    } catch {
+      /* fall back to relative path */
     }
-    if (this._user()) this.setUser(null);
-    return false;
+    try {
+      const res = await fetch(url, { credentials: 'include' });
+      if (res.status === 401 || res.status === 403) {
+        this.setUser(null);
+        return false;
+      }
+      if (!res.ok) return false;
+      const body = (await res.json().catch(() => null)) as Record<string, unknown> | null;
+      if (!body || typeof body !== 'object' || Array.isArray(body)) {
+        this.setUser(null);
+        return false;
+      }
+      if (typeof body['id'] !== 'string' || !body['id']) {
+        this.setUser(null);
+        return false;
+      }
+      if (body['active'] === false) {
+        this.setUser(null);
+        return false;
+      }
+      const role = ROLES.includes(body['role'] as User['role'])
+        ? (body['role'] as User['role'])
+        : 'USER';
+      const current = this._user();
+      this.setUser({
+        id: body['id'] as string,
+        email: typeof body['email'] === 'string' ? body['email'] : (current?.email ?? ''),
+        name: typeof body['displayName'] === 'string' ? body['displayName']
+             : typeof body['name'] === 'string' ? body['name']
+             : (current?.name ?? ''),
+        role,
+        firmId: typeof body['organizationId'] === 'string' ? body['organizationId']
+               : current?.firmId,
+        organizationId: typeof body['organizationId'] === 'string'
+               ? body['organizationId'] : current?.organizationId,
+        active: body['active'] !== false,
+      });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   signOut() {
+    // Fire-and-forget: tell the server to invalidate the session cookie.
+    let logoutUrl = 'api/auth/logout';
+    try { logoutUrl = new URL('api/auth/logout', document.baseURI).toString(); } catch { /* keep relative */ }
+    void fetch(logoutUrl, { method: 'POST', credentials: 'include' }).catch(() => undefined);
     this.setUser(null);
     this.setImpersonatingFirm(null);
   }

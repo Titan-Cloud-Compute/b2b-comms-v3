@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { FEATURE_ROUTES } from './features/index';
-import { authGuard } from './shared/auth.guard';
+import { authGuard, adminGuard } from './shared/auth.guard';
 
 export const routes: Routes = [
   {
@@ -63,18 +63,22 @@ export const routes: Routes = [
       },
       {
         path: 'admin',
+        canActivate: [adminGuard],
         loadComponent: () => import('./admin/admin.component').then(m => m.AdminComponent)
       },
       {
         path: 'admin/overview',
+        canActivate: [adminGuard],
         loadComponent: () => import('./admin/admin.component').then(m => m.AdminComponent)
       },
       {
         path: 'admin/users',
+        canActivate: [adminGuard],
         loadComponent: () => import('./admin/admin.component').then(m => m.AdminComponent)
       },
       {
         path: 'admin/app-settings',
+        canActivate: [adminGuard],
         loadComponent: () => import('./admin/admin.component').then(m => m.AdminComponent)
       },
     ]

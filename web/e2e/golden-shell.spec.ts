@@ -37,8 +37,18 @@ async function mockApi(page: Page): Promise<void> {
       route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
 
     if (method === 'POST' && apiPath === 'auth/login') {
-      store.user = { id: '1', email: 'user@example.com', role: 'USER' };
+      let email = 'user@example.com';
+      try {
+        const body = req.postDataJSON() as { email?: string } | null;
+        if (typeof body?.email === 'string') email = body.email;
+      } catch { /* keep default */ }
+      const isAdmin = email.startsWith('admin');
+      store.user = { id: '1', email, role: isAdmin ? 'ADMIN' : 'USER' };
       return json(store.user);
+    }
+    if (method === 'POST' && apiPath === 'auth/logout') {
+      store.user = null;
+      return json({ ok: true });
     }
     if (method === 'GET' && apiPath === 'users/me') {
       return store.user ? json(store.user) : json({ message: 'Unauthorized' }, 401);
@@ -56,6 +66,14 @@ async function login(page: Page): Promise<void> {
   await page.locator('#password').fill('password1234');
   await page.locator('button[type="submit"]').click();
   await expect(page).toHaveURL(/#\/dashboard/, { timeout: 10_000 });
+}
+
+async function loginAsAdmin(page: Page): Promise<void> {
+  await page.goto('/#/login');
+  await page.locator('#email').fill('admin@example.com');
+  await page.locator('#password').fill('password1234');
+  await page.locator('button[type="submit"]').click();
+  await expect(page).toHaveURL(/#\/admin/, { timeout: 10_000 });
 }
 
 test.use({ serviceWorkers: 'block' });
@@ -103,7 +121,12 @@ test('forgot-password → request → reset with token → back to login', async
 
 test('every kept route renders a data-free placeholder with no locale-specific strings', async ({ page }) => {
   await login(page);
+  let adminLoggedIn = false;
   for (const r of KEPT_ROUTES) {
+    if (r.startsWith('admin') && !adminLoggedIn) {
+      await loginAsAdmin(page);
+      adminLoggedIn = true;
+    }
     await page.goto(`/#/${r}`);
     await expect(page.locator('main.main-content [data-placeholder]').first(), r).toBeVisible();
     expect(await page.locator('body').innerText(), r).not.toMatch(LOCALE_GUARD);
