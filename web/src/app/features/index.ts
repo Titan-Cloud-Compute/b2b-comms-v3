@@ -35,6 +35,12 @@ export const FEATURE_ROUTES: Routes = [
     path: 'projects/:id/files/:folderId',
     loadComponent: () => import('./files/file-explorer.component').then(m => m.FileExplorerComponent),
   },
+  // General Channels. Must precede the bare 'projects/:id' entry for readability (Angular matches full paths).
+  {
+    path: 'projects/:id/channels/:channelId',
+    loadComponent: () =>
+      import('./general-channels/channel.component').then(m => m.ChannelComponent),
+  },
   {
     path: 'projects/:id',
     loadComponent: () =>
