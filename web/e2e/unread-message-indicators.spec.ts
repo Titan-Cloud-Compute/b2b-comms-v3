@@ -56,6 +56,12 @@ async function mockApi(page: Page): Promise<MockState> {
       route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
 
     if (method === 'GET' && apiPath === 'users/me') return json({ id: 'u-me', email: 'user@example.com', role: 'USER' });
+    if (method === 'GET' && apiPath === `projects/${PROJECT_ID}`) {
+      return json({
+        id: PROJECT_ID, name: 'Acme', status: 'active', organization: { id: 'o1', name: 'Acme', type: 'customer' },
+        default_channel_id: 'c-general', members: [],
+      });
+    }
     if (method === 'GET' && apiPath === `projects/${PROJECT_ID}/channels`) {
       return json({
         general: [
@@ -84,8 +90,9 @@ async function mockApi(page: Page): Promise<MockState> {
 test.use({ serviceWorkers: 'block' });
 
 async function gotoList(page: Page): Promise<void> {
-  await page.goto(`/#/projects/${PROJECT_ID}/channels`);
-  await expect(page.getByTestId('unread-channel-list')).toBeVisible({ timeout: 10_000 });
+  await page.goto(`/#/projects/${PROJECT_ID}`);
+  await expect(page.getByTestId('project-detail-page')).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByTestId('project-unread-channels').getByTestId('unread-channel-list')).toBeVisible({ timeout: 10_000 });
 }
 
 const item = (page: Page, id: string) => page.locator(`[data-testid="unread-channel-item"][data-channel-id="${id}"]`);
@@ -120,7 +127,15 @@ test('opening a channel marks it read and the bubble disappears', async ({ page 
   await gotoList(page);
   await item(page, 'c-general').getByTestId('unread-channel-link').click();
   await expect.poll(() => state.reads).toContain('c-general');
-  await page.goto(`/#/projects/${PROJECT_ID}/channels`);
+  await expect(page).toHaveURL(/#\/projects\/p1\/channels\/c-general$/);
+  await page.goto(`/#/projects/${PROJECT_ID}`);
   await expect(page.getByTestId('unread-channel-list')).toBeVisible({ timeout: 10_000 });
   await expect(item(page, 'c-general').getByTestId('unread-bubble')).toHaveCount(0);
+});
+
+test('opening a channel by direct URL also marks it read', async ({ page }) => {
+  await fakeEventSource(page);
+  const state = await mockApi(page);
+  await page.goto(`/#/projects/${PROJECT_ID}/channels/c-general`);
+  await expect.poll(() => state.reads).toContain('c-general');
 });

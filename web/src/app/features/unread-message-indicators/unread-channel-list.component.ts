@@ -1,4 +1,4 @@
-import { Component, DestroyRef, NgZone, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, Input, NgZone, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../shared/auth.service';
 import { GeneralChannelsApiService, errorMessage } from '../general-channels/general-channels-api.service';
@@ -13,8 +13,12 @@ interface UnreadChannelRow { id: string; name: string; kind: 'general' | 'questi
   imports: [RouterLink],
   template: `
     <section class="ucl" data-testid="unread-channel-list-page">
-      <a [routerLink]="['/projects', projectId()]">Back to project</a>
-      <h1>Channels</h1>
+      @if (embedded) {
+        <h2>Channels</h2>
+      } @else {
+        <a [routerLink]="['/projects', projectId()]">Back to project</a>
+        <h1>Channels</h1>
+      }
       @if (error(); as e) {
         <div class="error" role="alert" data-testid="unread-error">{{ e }}</div>
       } @else if (loading()) {
@@ -54,6 +58,9 @@ export class UnreadChannelListComponent implements OnInit {
   private channelsApi = inject(GeneralChannelsApiService);
   private api = inject(UnreadMessageIndicatorsApiService);
   private streams: EventSource[] = [];
+
+  /** True when rendered inside the project page (/projects/:id) rather than as its own page. */
+  @Input() embedded = false;
 
   projectId = signal('');
   rows = signal<UnreadChannelRow[]>([]);
