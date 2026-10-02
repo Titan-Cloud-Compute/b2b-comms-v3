@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
 import { FEATURE_ROUTES } from './features/index';
-import { authGuard } from './shared/auth.guard';
 
 export const routes: Routes = [
+  ...FEATURE_ROUTES,
   {
     path: '',
     loadComponent: () => import('./landing/landing.component').then(m => m.LandingComponent),
@@ -49,8 +49,6 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./shared/layout.component').then(m => m.LayoutComponent),
-    canActivate: [authGuard],
-    canActivateChild: [authGuard],
     data: { rendersSupportFooterInLayout: true },
     children: [
       {
@@ -80,17 +78,7 @@ export const routes: Routes = [
     ]
   },
   {
-    // Story feature routes (/projects, /projects/:id/...) require a session.
-    // Public pages (login, accept-invite, ...) must be registered above.
-    path: '',
-    canActivate: [authGuard],
-    canActivateChild: [authGuard],
-    children: FEATURE_ROUTES
-  },
-  {
-    // Unknown URLs go through the guarded shell so authGuard decides:
-    // anonymous → /login, signed-in → app (never bounced to the login form).
     path: '**',
-    redirectTo: 'dashboard'
+    redirectTo: 'login'
   }
 ];

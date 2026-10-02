@@ -228,7 +228,6 @@ export class AuthService {
       ok = false;
     }
     if (!ok) throw new UnauthorizedException('invalid credentials');
-    if (user.active === false) throw new UnauthorizedException('account deactivated');
 
     return { user, token: await this.issueToken(user) };
   }

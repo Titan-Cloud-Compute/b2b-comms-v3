@@ -8,11 +8,11 @@ export interface User {
   email: string;
   name: string;
   firmName?: string;
-  role: 'USER' | 'MANAGER' | 'ADMIN' | 'SUPER_ADMIN';
+  role: 'USER' | 'ADMIN' | 'SUPER_ADMIN';
   firmId?: string;
 }
 
-const ROLES: readonly User['role'][] = ['USER', 'MANAGER', 'ADMIN', 'SUPER_ADMIN'];
+const ROLES: readonly User['role'][] = ['USER', 'ADMIN', 'SUPER_ADMIN'];
 
 /**
  * Parse a persisted user, returning null for anything that is not a valid
@@ -249,49 +249,6 @@ export class AuthService {
 
   isAuthenticated(): boolean {
     return this._user() !== null;
-  }
-
-  /**
-   * Ask the server whether the session cookie is still valid. Uses `fetch`
-   * (not ApiClient) to avoid a DI cycle with the HTTP layer. Tries
-   * GET /api/auth/me first, then GET /api/users/me. Resolves true only when the
-   * server returns an identity; clears the local session otherwise.
-   */
-  async verifySession(): Promise<boolean> {
-    if (PREVIEW_MODE) return this.isAuthenticated();
-    for (const path of ['api/auth/me']) {
-      let url = path;
-      try {
-        url = new URL(path, document.baseURI).toString();
-      } catch {
-        /* fall back to relative path */
-      }
-      try {
-        const res = await fetch(url, { credentials: 'include' });
-        if (res.status === 401 || res.status === 403) break;
-        if (!res.ok) continue;
-        const body = (await res.json().catch(() => null)) as Partial<User> | null;
-        if (body && typeof body === 'object' && !Array.isArray(body) && typeof body.id === 'string' && body.id) {
-          const current = this._user();
-          if (!current || current.id !== body.id) {
-            const role = ROLES.includes(body.role as User['role']) ? (body.role as User['role']) : 'USER';
-            this.setUser({
-              ...(current ?? {}),
-              ...body,
-              id: body.id,
-              email: typeof body.email === 'string' ? body.email : current?.email ?? '',
-              name: typeof body.name === 'string' ? body.name : (body.email as string) ?? '',
-              role,
-            } as User);
-          }
-          return true;
-        }
-      } catch {
-        /* network failure — try the next endpoint */
-      }
-    }
-    if (this._user()) this.setUser(null);
-    return false;
   }
 
   signOut() {
