@@ -20,8 +20,11 @@ import { FILE_EXPLORER_ROUTES } from './file-explorer/file-explorer.routes';
 import { GENERAL_CHANNELS_ROUTES } from './general-channels/general-channels.routes';
 // Active Question Chats: projects/:id/questions/:channelId
 import { ACTIVE_QUESTION_CHATS_ROUTES } from './active-question-chats/active-question-chats.routes';
+// Message Reference and Annotation: projects/:id/references/new, projects/:id/references/:referenceId
+import { MESSAGE_REFERENCE_AND_ANNOTATION_ROUTES } from './message-reference-and-annotation/message-reference-and-annotation.routes';
 
 export const FEATURE_ROUTES: Routes = [
+  ...MESSAGE_REFERENCE_AND_ANNOTATION_ROUTES,
   ...GENERAL_CHANNELS_ROUTES,
   ...ACTIVE_QUESTION_CHATS_ROUTES,
   ...FILE_EXPLORER_ROUTES,
