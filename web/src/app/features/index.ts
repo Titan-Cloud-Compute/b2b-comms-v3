@@ -41,6 +41,12 @@ export const FEATURE_ROUTES: Routes = [
     loadComponent: () =>
       import('./general-channels/channel.component').then(m => m.ChannelComponent),
   },
+  // Active Question Chats.
+  {
+    path: 'projects/:id/questions/:channelId',
+    loadComponent: () =>
+      import('./active-questions/question.component').then(m => m.QuestionComponent),
+  },
   {
     path: 'projects/:id',
     loadComponent: () =>

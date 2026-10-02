@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Project, ProjectsApi } from './projects.api';
+import { Question, QuestionsApi } from '../active-questions/questions.api';
 
 @Component({
   selector: 'app-project-space',
@@ -23,6 +24,23 @@ import { Project, ProjectsApi } from './projects.api';
           <h2>Chat</h2>
           <p class="muted"># general</p>
         </section>
+        <section class="chat-area" data-testid="project-active-questions">
+          <h2>Active Questions</h2>
+          <ul>
+            @for (q of questions(); track q.id) {
+              <li><a data-testid="project-question-link" [routerLink]="['/projects', projectId, 'questions', q.id]">? {{ q.name }}</a>
+                @if (q.status === 'resolved') { <span class="muted">resolved</span> }</li>
+            } @empty {
+              <li class="muted">No active questions yet.</li>
+            }
+          </ul>
+          <form (submit)="$event.preventDefault(); ask(qTitle, qBody)">
+            <input #qTitle data-testid="project-new-question-title" placeholder="Question title" />
+            <input #qBody data-testid="project-new-question-message" placeholder="First message" />
+            <button type="submit" data-testid="project-create-question">Ask question</button>
+            @if (askError()) { <p role="alert">{{ askError() }}</p> }
+          </form>
+        </section>
       }
     </div>
   `,
@@ -35,12 +53,38 @@ import { Project, ProjectsApi } from './projects.api';
 export class ProjectSpaceComponent implements OnInit {
   private api = inject(ProjectsApi);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private questionsApi = inject(QuestionsApi);
 
   project = signal<Project | null>(null);
   error = signal<string | null>(null);
+  questions = signal<Question[]>([]);
+  askError = signal<string | null>(null);
+  projectId = '';
+
+  async ask(title: HTMLInputElement, body: HTMLInputElement): Promise<void> {
+    const t = title.value.trim();
+    const b = body.value.trim();
+    if (!t || !b) {
+      this.askError.set('A title and a first message are required.');
+      return;
+    }
+    try {
+      const q = await this.questionsApi.create(this.projectId, t, b);
+      this.askError.set(null);
+      await this.router.navigate(['/projects', this.projectId, 'questions', q.id]);
+    } catch {
+      this.askError.set('Question could not be created.');
+    }
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id') ?? '';
+    this.projectId = id;
+    this.questionsApi
+      .list(id)
+      .then((list) => this.questions.set(Array.isArray(list) ? list : []))
+      .catch(() => this.questions.set([]));
     this.api
       .get(id)
       .then((p) => this.project.set(p))
