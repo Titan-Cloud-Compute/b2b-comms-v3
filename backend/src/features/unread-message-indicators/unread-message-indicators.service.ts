@@ -102,7 +102,23 @@ export class UnreadMessageIndicatorsService {
       const project = await tx.projects.findUnique({ where: { id: channel.project_id } });
       const members = (await tx.project_members.findMany({ where: { project_id: channel.project_id } })) as any[];
       const states = (await tx.channel_read_state.findMany({ where: { channel_id: channelId } })) as any[];
-      const ids = [...new Set([...members.map((m) => m.user_id), ...states.map((s) => s.user_id)].filter(Boolean))] as string[];
+      // Privileged roles (and the project creator) can see the project without a project_members row,
+      // so they must receive unread increments too.
+      // UserRole enum (prisma/schema.prisma) only has ADMIN | MANAGER | USER.
+      const privilegedRoles = ['ADMIN', 'MANAGER'];
+      const privileged = ((await tx.user.findMany({ where: { role: { in: privilegedRoles } } })) as any[]).filter((u) =>
+        isPrivileged(u.role),
+      );
+      const ids = [
+        ...new Set(
+          [
+            ...members.map((m) => m.user_id),
+            ...states.map((s) => s.user_id),
+            ...privileged.map((u) => u.id),
+            project?.created_by,
+          ].filter(Boolean),
+        ),
+      ] as string[];
       if (!ids.length) return [];
       const users = (await tx.user.findMany({ where: { id: { in: ids } } })) as any[];
       const orgIds = [...new Set(users.map((u) => u.organizationId).filter(Boolean))];
