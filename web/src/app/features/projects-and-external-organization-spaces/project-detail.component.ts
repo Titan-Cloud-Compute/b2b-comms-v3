@@ -41,7 +41,7 @@ import { projectErrorMessage } from './project-errors';
           <form class="invite" data-testid="invite-form" (ngSubmit)="invite()">
             <label>
               Invite external contact (email)
-              <input name="inviteEmail" type="email" [(ngModel)]="inviteEmail" data-testid="invite-email" />
+              <input id="inviteEmail" name="inviteEmail" type="email" [(ngModel)]="inviteEmail" data-testid="invite-email" />
             </label>
             <button type="submit" [disabled]="busy()">Send invite</button>
           </form>
