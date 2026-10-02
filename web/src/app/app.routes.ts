@@ -1,9 +1,8 @@
 import { Routes } from '@angular/router';
 import { FEATURE_ROUTES } from './features/index';
-import { authGuard } from './shared/auth.guard';
 
 export const routes: Routes = [
-  // Public landing page at the root.
+  ...FEATURE_ROUTES,
   {
     path: '',
     loadComponent: () => import('./landing/landing.component').then(m => m.LandingComponent),
@@ -12,11 +11,6 @@ export const routes: Routes = [
   {
     path: 'login',
     loadComponent: () => import('./login/login.component').then(m => m.LoginComponent),
-    data: { hideSupportFooter: true }
-  },
-  {
-    path: 'accept-invite/:token',
-    loadComponent: () => import('./accept-invite/accept-invite.component').then(m => m.AcceptInviteComponent),
     data: { hideSupportFooter: true }
   },
   {
@@ -56,9 +50,7 @@ export const routes: Routes = [
     path: '',
     loadComponent: () => import('./shared/layout.component').then(m => m.LayoutComponent),
     data: { rendersSupportFooterInLayout: true },
-    canActivate: [authGuard],
     children: [
-      ...FEATURE_ROUTES,
       {
         path: 'dashboard',
         loadComponent: () => import('./dashboard/dashboard.component').then(m => m.DashboardComponent)

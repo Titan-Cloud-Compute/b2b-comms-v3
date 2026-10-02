@@ -1,5 +1,3 @@
-import { FileExplorerModule } from './file-explorer/file-explorer.module';
-
 /**
  * Feature module registry.
  *
@@ -13,8 +11,5 @@ import { FileExplorerModule } from './file-explorer/file-explorer.module';
  *
  * Or simply add it here directly.
  */
-import { ProjectsModule } from './projects/projects.module';
-import { GeneralChannelsModule } from './general-channels/general-channels.module';
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const FEATURE_MODULES: any[] = [ProjectsModule, FileExplorerModule, GeneralChannelsModule];
+export const FEATURE_MODULES: any[] = [];

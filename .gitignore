@@ -8,9 +8,6 @@ build/
 # Angular cache
 .angular/
 
-# TypeScript incremental build cache (stale caches poison tsc --noEmit)
-*.tsbuildinfo
-
 # Logs
 *.log
 npm-debug.log*
