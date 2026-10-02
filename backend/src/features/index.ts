@@ -15,6 +15,7 @@ import { FileExplorerModule } from './file-explorer/file-explorer.module';
  */
 import { ProjectsModule } from './projects/projects.module';
 import { GeneralChannelsModule } from './general-channels/general-channels.module';
+import { ActiveQuestionsModule } from './active-questions/active-questions.module';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const FEATURE_MODULES: any[] = [ProjectsModule, FileExplorerModule, GeneralChannelsModule];
+export const FEATURE_MODULES: any[] = [ProjectsModule, FileExplorerModule, GeneralChannelsModule, ActiveQuestionsModule];
