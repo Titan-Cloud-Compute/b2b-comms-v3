@@ -18,9 +18,12 @@ import { PROJECTS_AND_EXTERNAL_ORGANIZATION_SPACES_ROUTES } from './projects-and
 
 import { FILE_EXPLORER_ROUTES } from './file-explorer/file-explorer.routes';
 import { GENERAL_CHANNELS_ROUTES } from './general-channels/general-channels.routes';
+// Active Question Chats: projects/:id/questions/:channelId
+import { ACTIVE_QUESTION_CHATS_ROUTES } from './active-question-chats/active-question-chats.routes';
 
 export const FEATURE_ROUTES: Routes = [
   ...GENERAL_CHANNELS_ROUTES,
+  ...ACTIVE_QUESTION_CHATS_ROUTES,
   ...FILE_EXPLORER_ROUTES,
   ...PROJECTS_AND_EXTERNAL_ORGANIZATION_SPACES_ROUTES,
 ];

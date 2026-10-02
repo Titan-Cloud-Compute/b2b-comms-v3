@@ -15,6 +15,7 @@ import { AuthenticationAndRolesModule } from './authentication-and-roles/authent
 import { ProjectsAndExternalOrganizationSpacesModule } from './projects-and-external-organization-spaces/projects-and-external-organization-spaces.module';
 import { FileExplorerModule } from './file-explorer/file-explorer.module';
 import { GeneralChannelsModule } from './general-channels/general-channels.module';
+import { ActiveQuestionChatsModule } from './active-question-chats/active-question-chats.module';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const FEATURE_MODULES: any[] = [
@@ -22,4 +23,5 @@ export const FEATURE_MODULES: any[] = [
   ProjectsAndExternalOrganizationSpacesModule,
   FileExplorerModule,
   GeneralChannelsModule,
+  ActiveQuestionChatsModule,
 ];
