@@ -55,9 +55,22 @@ model User {
   passwordResetTokens PasswordResetToken[]
   password_hash  String?
   display_name  String?
-  organization_id  String?
-  active  Boolean?
-  created_at  DateTime?
+  // Nullable: template/seeded users pre-date organizations.
+  organization_id  String?  @db.Uuid
+  organization     organizations? @relation("OrganizationUsers", fields: [organization_id], references: [id], onDelete: SetNull)
+  active  Boolean  @default(true)
+  created_at  DateTime  @default(now())
+
+  invitationsSent      invitations[]          @relation("InvitationInvitedBy")
+  projectsCreated      projects[]             @relation("ProjectCreatedBy")
+  projectMemberships   project_members[]      @relation("ProjectMemberUser")
+  foldersCreated       folders[]              @relation("FolderCreatedBy")
+  fileVersionsUploaded file_versions[]        @relation("FileVersionUploadedBy")
+  channelsCreated      channels[]             @relation("ChannelCreatedBy")
+  questionResolutions  question_resolutions[] @relation("QuestionResolvedBy")
+  messagesAuthored     messages[]             @relation("MessageAuthor")
+  referencesAuthored   references[]           @relation("ReferenceAuthor")
+  channelReadStates    channel_read_state[]   @relation("ChannelReadStateUser")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -143,144 +156,209 @@ model ColossusAccount {
   @@map("colossus_accounts")
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Domain model (spec). ids are uuid; columns pointing at User are TEXT because
+// User.id is a cuid. Migration: 0007_spec_data_model_strict.
+// ─────────────────────────────────────────────────────────────────────────────
+
 model organizations {
-  id  String  @id @default(cuid())
-  name  String?
-  type  String?
-  is_internal  Boolean?
-  created_at  DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  type         String
+  is_internal  Boolean  @default(false)
+  created_at   DateTime @default(now())
+
+  users    User[]     @relation("OrganizationUsers")
+  projects projects[]
 }
 
 model invitations {
-  id  String  @id @default(cuid())
-  project_id  String?
-  email  String?
-  token_hash  String?
-  status  String?
-  invited_by  String?
-  expires_at  DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id          String   @id @default(uuid()) @db.Uuid
+  project_id  String   @db.Uuid
+  email       String
+  token_hash  String
+  status      String
+  invited_by  String
+  expires_at  DateTime
+
+  project  projects @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  inviter  User     @relation("InvitationInvitedBy", fields: [invited_by], references: [id], onDelete: Cascade)
+
+  @@index([project_id])
 }
 
 model projects {
-  id  String  @id @default(cuid())
-  organization_id  String?
-  name  String?
-  status  String?
-  created_by  String?
-  created_at  DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id               String   @id @default(uuid()) @db.Uuid
+  organization_id  String   @db.Uuid
+  name             String
+  status           String
+  created_by       String
+  created_at       DateTime @default(now())
+
+  organization organizations     @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  creator      User              @relation("ProjectCreatedBy", fields: [created_by], references: [id], onDelete: Cascade)
+  invitations  invitations[]
+  members      project_members[]
+  folders      folders[]
+  files        files[]
+  channels     channels[]
+
+  @@index([organization_id])
 }
 
 model project_members {
-  id  String  @id @default(cuid())
-  project_id  String?
-  user_id  String?
-  added_at  DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  project_id  String   @db.Uuid
+  user_id     String
+  added_at    DateTime @default(now())
+
+  project projects @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  user    User     @relation("ProjectMemberUser", fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@id([project_id, user_id])
+  @@index([user_id])
 }
 
 model folders {
-  id  String  @id @default(cuid())
-  project_id  String?
-  parent_id  String?
-  name  String?
-  created_by  String?
+  id          String    @id @default(uuid()) @db.Uuid
+  project_id  String    @db.Uuid
+  parent_id   String?   @db.Uuid
+  name        String
+  created_by  String
   deleted_at  DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+
+  project  projects  @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  parent   folders?  @relation("FolderTree", fields: [parent_id], references: [id], onDelete: Cascade)
+  children folders[] @relation("FolderTree")
+  creator  User      @relation("FolderCreatedBy", fields: [created_by], references: [id], onDelete: Cascade)
+  files    files[]
+
+  @@index([project_id])
+  @@index([parent_id])
 }
 
 model files {
-  id  String  @id @default(cuid())
-  project_id  String?
-  folder_id  String?
-  name  String?
-  mime_type  String?
-  current_version_id  String?
-  deleted_at  DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id                  String    @id @default(uuid()) @db.Uuid
+  project_id          String    @db.Uuid
+  folder_id           String?   @db.Uuid
+  name                String
+  mime_type           String
+  current_version_id  String?   @unique @db.Uuid
+  deleted_at          DateTime?
+
+  project         projects              @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  folder          folders?              @relation(fields: [folder_id], references: [id], onDelete: SetNull)
+  current_version file_versions?        @relation("FileCurrentVersion", fields: [current_version_id], references: [id], onDelete: SetNull)
+  versions        file_versions[]       @relation("FileVersions")
+  attachments     message_attachments[]
+
+  @@index([project_id])
+  @@index([folder_id])
 }
 
 model file_versions {
-  id  String  @id @default(cuid())
-  file_id  String?
-  version_number  Int?
-  storage_key  String?
-  size_bytes  BigInt?
-  uploaded_by  String?
-  uploaded_at  DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id              String   @id @default(uuid()) @db.Uuid
+  file_id         String   @db.Uuid
+  version_number  Int
+  storage_key     String
+  size_bytes      BigInt
+  uploaded_by     String
+  uploaded_at     DateTime @default(now())
+
+  file            files        @relation("FileVersions", fields: [file_id], references: [id], onDelete: Cascade)
+  current_of      files?       @relation("FileCurrentVersion")
+  uploader        User         @relation("FileVersionUploadedBy", fields: [uploaded_by], references: [id], onDelete: Cascade)
+  references      references[]
+
+  @@unique([file_id, version_number])
 }
 
 model channels {
-  id  String  @id @default(cuid())
-  project_id  String?
-  kind  String?
-  name  String?
-  internal_only  Boolean?
-  status  String?
-  created_by  String?
-  created_at  DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id             String   @id @default(uuid()) @db.Uuid
+  project_id     String   @db.Uuid
+  kind           String
+  name           String
+  internal_only  Boolean  @default(false)
+  status         String
+  created_by     String
+  created_at     DateTime @default(now())
+
+  project      projects               @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  creator      User                   @relation("ChannelCreatedBy", fields: [created_by], references: [id], onDelete: Cascade)
+  resolutions  question_resolutions[]
+  messages     messages[]
+  read_states  channel_read_state[]
+
+  @@index([project_id])
 }
 
 model question_resolutions {
-  id  String  @id @default(cuid())
-  channel_id  String?
-  side  String?
-  resolved_by  String?
-  resolved_at  DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  channel_id   String   @db.Uuid
+  side         String
+  resolved_by  String
+  resolved_at  DateTime @default(now())
+
+  channel  channels @relation(fields: [channel_id], references: [id], onDelete: Cascade)
+  resolver User     @relation("QuestionResolvedBy", fields: [resolved_by], references: [id], onDelete: Cascade)
+
+  @@id([channel_id, side])
 }
 
 model messages {
-  id  String  @id @default(cuid())
-  channel_id  String?
-  author_id  String?
-  body_html  String?
-  edited_at  DateTime?
+  id          String    @id @default(uuid()) @db.Uuid
+  channel_id  String    @db.Uuid
+  author_id   String
+  body_html   String
+  edited_at   DateTime?
   deleted_at  DateTime?
-  created_at  DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  created_at  DateTime  @default(now())
+
+  channel     channels              @relation(fields: [channel_id], references: [id], onDelete: Cascade)
+  author      User                  @relation("MessageAuthor", fields: [author_id], references: [id], onDelete: Cascade)
+  attachments message_attachments[]
+  reference   references?
+  read_marks  channel_read_state[]
+
+  @@index([channel_id, created_at])
 }
 
 model message_attachments {
-  id  String  @id @default(cuid())
-  message_id  String?
-  file_id  String?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id          String @id @default(uuid()) @db.Uuid
+  message_id  String @db.Uuid
+  file_id     String @db.Uuid
+
+  message messages @relation(fields: [message_id], references: [id], onDelete: Cascade)
+  file    files    @relation(fields: [file_id], references: [id], onDelete: Cascade)
+
+  @@index([message_id])
+  @@index([file_id])
 }
 
 model references {
-  id  String  @id @default(cuid())
-  message_id  String? @unique
-  file_version_id  String?
-  page_number  Int?
-  annotations  Json?
-  author_id  String?
-  updated_at  DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id               String   @id @default(uuid()) @db.Uuid
+  message_id       String   @unique @db.Uuid
+  file_version_id  String   @db.Uuid
+  page_number      Int?
+  annotations      Json     @default("[]") @db.JsonB
+  author_id        String
+  updated_at       DateTime @default(now()) @updatedAt
+
+  message      messages      @relation(fields: [message_id], references: [id], onDelete: Cascade)
+  file_version file_versions @relation(fields: [file_version_id], references: [id], onDelete: Cascade)
+  author       User          @relation("ReferenceAuthor", fields: [author_id], references: [id], onDelete: Cascade)
+
+  @@index([file_version_id])
 }
 
 model channel_read_state {
-  id  String  @id @default(cuid())
-  channel_id  String?
-  user_id  String?
-  last_read_message_id  String?
-  unread_count  Int?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  channel_id            String  @db.Uuid
+  user_id               String
+  last_read_message_id  String? @db.Uuid
+  unread_count          Int     @default(0)
+
+  channel           channels  @relation(fields: [channel_id], references: [id], onDelete: Cascade)
+  user              User      @relation("ChannelReadStateUser", fields: [user_id], references: [id], onDelete: Cascade)
+  last_read_message messages? @relation(fields: [last_read_message_id], references: [id], onDelete: SetNull)
+
+  @@id([channel_id, user_id])
+  @@index([user_id])
 }
