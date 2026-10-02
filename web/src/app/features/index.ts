@@ -17,5 +17,10 @@ import { Routes } from '@angular/router';
 import { PROJECTS_AND_EXTERNAL_ORGANIZATION_SPACES_ROUTES } from './projects-and-external-organization-spaces/projects-and-external-organization-spaces.routes';
 
 import { FILE_EXPLORER_ROUTES } from './file-explorer/file-explorer.routes';
+import { GENERAL_CHANNELS_ROUTES } from './general-channels/general-channels.routes';
 
-export const FEATURE_ROUTES: Routes = [...FILE_EXPLORER_ROUTES, ...PROJECTS_AND_EXTERNAL_ORGANIZATION_SPACES_ROUTES];
+export const FEATURE_ROUTES: Routes = [
+  ...GENERAL_CHANNELS_ROUTES,
+  ...FILE_EXPLORER_ROUTES,
+  ...PROJECTS_AND_EXTERNAL_ORGANIZATION_SPACES_ROUTES,
+];
