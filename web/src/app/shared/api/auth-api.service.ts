@@ -11,12 +11,14 @@ export interface ImpersonationIdentity {
   impersonating: boolean;
 }
 
-export type UserRole = 'ADMIN' | 'USER' | 'SUPER_ADMIN';
+export type UserRole = 'ADMIN' | 'MANAGER' | 'USER' | 'SUPER_ADMIN';
 
 export interface AuthUser {
   id: string;
   email: string;
   role: UserRole;
+  name?: string;
+  organizationId?: string | null;
 }
 
 export interface SignupInput {

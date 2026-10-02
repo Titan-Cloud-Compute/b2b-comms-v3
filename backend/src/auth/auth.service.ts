@@ -30,6 +30,31 @@ export interface SignupArgs {
    *  signups after the first (bootstrap) user. */
   registrationToken?: string;
 }
+/** Public identity shape returned by login, /api/auth/me and /api/users/me. */
+export interface UserIdentity {
+  id: string;
+  email: string;
+  name: string;
+  displayName: string;
+  role: UserRole;
+  organizationId: string | null;
+  active: boolean;
+}
+
+/** Map a User row to the identity the web client receives. */
+export function toIdentity(user: User): UserIdentity {
+  const name = user.display_name ?? user.name ?? user.email.split('@')[0];
+  return {
+    id: user.id,
+    email: user.email,
+    name,
+    displayName: name,
+    role: user.role,
+    organizationId: user.organization_id ?? null,
+    active: user.active !== false,
+  };
+}
+
 export interface LoginArgs {
   email: string;
   password: string;
@@ -218,16 +243,21 @@ export class AuthService {
     const user = await this.prisma.runAsAdmin((tx) =>
       tx.user.findUnique({ where: { email } }),
     );
-    if (!user || !user.passwordHash) {
+    const hash = user?.passwordHash ?? user?.password_hash;
+    if (!user || !hash) {
       throw new UnauthorizedException('invalid credentials');
     }
     let ok = false;
     try {
-      ok = await bcrypt.compare(args.password, user.passwordHash);
+      ok = await bcrypt.compare(args.password, hash);
     } catch {
       ok = false;
     }
     if (!ok) throw new UnauthorizedException('invalid credentials');
+    // Deactivated accounts may not sign in (null = legacy row, treated active).
+    if (user.active === false) {
+      throw new UnauthorizedException('account is deactivated');
+    }
 
     return { user, token: await this.issueToken(user) };
   }
@@ -370,6 +400,7 @@ export class AuthService {
       userId: user.id,
       role: user.role,
       firmId: null,
+      organizationId: user.organization_id ?? null,
     };
     return this.jwt.signAsync(payload);
   }

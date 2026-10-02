@@ -8,11 +8,13 @@ export interface User {
   email: string;
   name: string;
   firmName?: string;
-  role: 'USER' | 'ADMIN' | 'SUPER_ADMIN';
+  role: 'USER' | 'MANAGER' | 'ADMIN' | 'SUPER_ADMIN';
   firmId?: string;
+  /** users.organization_id as reported by the server. */
+  organizationId?: string | null;
 }
 
-const ROLES: readonly User['role'][] = ['USER', 'ADMIN', 'SUPER_ADMIN'];
+const ROLES: readonly User['role'][] = ['USER', 'MANAGER', 'ADMIN', 'SUPER_ADMIN'];
 
 /**
  * Parse a persisted user, returning null for anything that is not a valid
@@ -245,6 +247,47 @@ export class AuthService {
 
   isSuperAdmin(): boolean {
     return this._user()?.role === 'SUPER_ADMIN' || this._user()?.role === 'ADMIN';
+  }
+
+  /**
+   * Server-checked session: asks GET api/users/me (cookie session) who is
+   * signed in and refreshes the cached user from the answer. Resolves false —
+   * and clears any stale cached user — when there is no valid session.
+   */
+  async verifySession(): Promise<boolean> {
+    if (PREVIEW_MODE) return this.isAuthenticated();
+    let url = 'api/users/me';
+    try {
+      url = new URL('api/users/me', document.baseURI).toString();
+    } catch {
+      /* keep relative */
+    }
+    try {
+      const res = await fetch(url, { credentials: 'include' });
+      if (res.ok) {
+        const body = (await res.json()) as Partial<{
+          id: string; email: string; name: string; role: string; organizationId: string | null;
+        }> | null;
+        if (body && typeof body.id === 'string' && body.id && typeof body.email === 'string') {
+          const role = ROLES.includes(body.role as User['role']) ? (body.role as User['role']) : 'USER';
+          const current = this._user();
+          this._user.set({
+            ...(current && current.id === body.id ? current : {}),
+            id: body.id,
+            email: body.email,
+            name: typeof body.name === 'string' && body.name ? body.name : (current?.name ?? body.email),
+            role,
+            organizationId: body.organizationId ?? null,
+          });
+          this.write('user', JSON.stringify(this._user()));
+          return true;
+        }
+      }
+    } catch {
+      /* network / parse failure → treated as signed out */
+    }
+    if (this._user()) this.signOut();
+    return false;
   }
 
   isAuthenticated(): boolean {

@@ -11,13 +11,14 @@ import {
   Post,
   Req,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
 import { SignupSchema } from './signup.schema';
-import { AuthService } from './auth.service';
+import { AuthService, toIdentity } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { RequireAdmin } from './roles.guard';
 import { Public } from './decorators/public.decorator';
@@ -80,7 +81,7 @@ export class AuthController {
     const parsed = LoginSchema.parse(body);
     const { user, token } = await this.authService.login(parsed);
     this.setSessionCookie(res, token);
-    return { id: user.id, email: user.email, role: user.role };
+    return toIdentity(user);
   }
 
   @Public()
@@ -135,7 +136,8 @@ export class AuthController {
   async getMe(@Req() req: Request) {
     const { userId } = req.session!;
     const user = await this.authService.getCurrentUser(userId);
-    return { id: user.id, email: user.email, name: user.name, role: user.role };
+    if (user.active === false) throw new UnauthorizedException('account is deactivated');
+    return toIdentity(user);
   }
 
   /** Update the signed-in user's editable profile (display name). */
