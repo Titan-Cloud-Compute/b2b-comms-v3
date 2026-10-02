@@ -1,0 +1,107 @@
+{
+  "site": {
+    "name": "537b3124-005a-462f-a6d7-06804310e338",
+    "site_id": "537b3124-005a-462f-a6d7-06804310e338"
+  },
+  "meta": {
+    "generated_by": "declared"
+  },
+  "front_end": {
+    "pages": [
+      {
+        "name": "Home",
+        "page_id": "home",
+        "url": "/",
+        "linked_page_ids": []
+      },
+      {
+        "name": "About",
+        "page_id": "about",
+        "url": "/about",
+        "linked_page_ids": []
+      },
+      {
+        "name": ":token",
+        "page_id": "accept-invite-token",
+        "url": "/accept-invite/:token",
+        "linked_page_ids": []
+      },
+      {
+        "name": "Admin",
+        "page_id": "admin",
+        "url": "/admin",
+        "linked_page_ids": []
+      },
+      {
+        "name": "App-settings",
+        "page_id": "admin-app-settings",
+        "url": "/admin/app-settings",
+        "linked_page_ids": []
+      },
+      {
+        "name": "Overview",
+        "page_id": "admin-overview",
+        "url": "/admin/overview",
+        "linked_page_ids": []
+      },
+      {
+        "name": "Users",
+        "page_id": "admin-users",
+        "url": "/admin/users",
+        "linked_page_ids": []
+      },
+      {
+        "name": "Dashboard",
+        "page_id": "dashboard",
+        "url": "/dashboard",
+        "linked_page_ids": []
+      },
+      {
+        "name": "Forgot-password",
+        "page_id": "forgot-password",
+        "url": "/forgot-password",
+        "linked_page_ids": []
+      },
+      {
+        "name": "Login",
+        "page_id": "login",
+        "url": "/login",
+        "linked_page_ids": []
+      },
+      {
+        "name": "Privacy",
+        "page_id": "privacy",
+        "url": "/privacy",
+        "linked_page_ids": []
+      },
+      {
+        "name": "Reset-password",
+        "page_id": "reset-password",
+        "url": "/reset-password",
+        "linked_page_ids": []
+      },
+      {
+        "name": "Settings",
+        "page_id": "settings",
+        "url": "/settings",
+        "linked_page_ids": []
+      },
+      {
+        "name": ":step",
+        "page_id": "signup-step",
+        "url": "/signup/:step",
+        "linked_page_ids": []
+      },
+      {
+        "name": "Terms",
+        "page_id": "terms",
+        "url": "/terms",
+        "linked_page_ids": []
+      }
+    ]
+  },
+  "back_end": {
+    "tables": []
+  },
+  "generated_by": "declared"
+}

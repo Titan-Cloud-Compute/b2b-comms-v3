@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { MESSAGE_REFERENCES_ROUTES } from './message-references/message-references.routes';
 
 /**
  * Feature route registry.
@@ -41,6 +42,8 @@ export const FEATURE_ROUTES: Routes = [
     loadComponent: () =>
       import('./general-channels/channel.component').then(m => m.ChannelComponent),
   },
+  // Story: Message Reference and Annotation. Must precede 'projects/:id'.
+  ...MESSAGE_REFERENCES_ROUTES,
   {
     path: 'projects/:id',
     loadComponent: () =>
