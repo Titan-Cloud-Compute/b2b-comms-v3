@@ -29,10 +29,12 @@ const fk = (table: string, col: string, target: string) =>
   );
 
 describe('domain migration', () => {
-  it('is the only migration after 0006 and the scaffold 0006 is kept', () => {
+  it('domain migration exists after 0006 and the scaffold 0006 is kept', () => {
     const dirs = readdirSync(MIGRATIONS_DIR).filter((d) => /^\d{4}_/.test(d)).sort();
     expect(dirs).toContain('0006_spec_data_model');
-    expect(dirs.filter((d) => d > '0006_spec_data_model')).toEqual([DOMAIN_MIGRATION]);
+    // Auth card also adds an auth-only migration after 0006; guard only that the
+    // domain migration itself is present (not a strict "only one" check).
+    expect(dirs.filter((d) => d > '0006_spec_data_model')).toContain(DOMAIN_MIGRATION);
   });
 
   it('creates every spec table and no users table', () => {
