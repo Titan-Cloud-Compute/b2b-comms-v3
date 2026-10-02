@@ -17,6 +17,7 @@ import { FileExplorerModule } from './file-explorer/file-explorer.module';
 import { GeneralChannelsModule } from './general-channels/general-channels.module';
 import { ActiveQuestionChatsModule } from './active-question-chats/active-question-chats.module';
 import { MessageReferenceAndAnnotationModule } from './message-reference-and-annotation/message-reference-and-annotation.module';
+import { UnreadMessageIndicatorsModule } from './unread-message-indicators/unread-message-indicators.module';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const FEATURE_MODULES: any[] = [
@@ -26,4 +27,5 @@ export const FEATURE_MODULES: any[] = [
   GeneralChannelsModule,
   ActiveQuestionChatsModule,
   MessageReferenceAndAnnotationModule,
+  UnreadMessageIndicatorsModule,
 ];
