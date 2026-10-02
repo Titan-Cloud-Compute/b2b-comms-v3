@@ -1,30 +1,12 @@
-import { Route, Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 import { FEATURE_ROUTES } from './features/index';
-import { authGuard, rootRedirectGuard } from './shared/auth.guard';
-
-/** Feature routes that must stay reachable while signed out. */
-const PUBLIC_FEATURE_PATHS = ['login', 'accept-invite'];
-
-/** Every feature route is guarded unless it is explicitly public. */
-function guardFeature(route: Route): Route {
-  const path = route.path ?? '';
-  if (PUBLIC_FEATURE_PATHS.some(p => path === p || path.startsWith(p + '/'))) return route;
-  if (route.redirectTo !== undefined) return route;
-  return { ...route, canActivate: [authGuard, ...(route.canActivate ?? [])] };
-}
 
 export const routes: Routes = [
-  ...FEATURE_ROUTES.map(guardFeature),
+  ...FEATURE_ROUTES,
   {
     path: '',
-    canActivate: [rootRedirectGuard],
     loadComponent: () => import('./landing/landing.component').then(m => m.LandingComponent),
     pathMatch: 'full'
-  },
-  {
-    path: 'accept-invite/:token',
-    loadComponent: () => import('./accept-invite/accept-invite.component').then(m => m.AcceptInviteComponent),
-    data: { hideSupportFooter: true }
   },
   {
     path: 'login',
@@ -68,7 +50,6 @@ export const routes: Routes = [
     path: '',
     loadComponent: () => import('./shared/layout.component').then(m => m.LayoutComponent),
     data: { rendersSupportFooterInLayout: true },
-    canActivate: [authGuard],
     children: [
       {
         path: 'dashboard',

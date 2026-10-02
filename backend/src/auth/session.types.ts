@@ -9,8 +9,6 @@ export interface SessionPayload {
   userId: string;
   role: UserRole;
   firmId: string | null;
-  /** The user's organization (users.organization_id), signed in at login. */
-  organizationId: string | null;
   /**
    * Admin impersonation marker: when set, this session is an ADMIN viewing the
    * app AS the firm in `firmId` (role downgraded to USER). Holds the real

@@ -192,24 +192,25 @@ export class LoginComponent {
       this.auth.setUser({
         id: result.id,
         email: result.email,
-        name: result.name || result.email.split('@')[0],
+        name: result.email.split('@')[0],
         role: this.mapRole(result.role),
-        organizationId: result.organizationId ?? null,
       });
       // Route based on role.
       // on the layout route is the single source of truth and bounces
       // unfinished-intake users back to their spot in the conversation.
-      // returnUrl round-trip (every role): when authGuard bounced a signed-out
-      // visit, resume at the interrupted destination. INTERNAL paths only —
-      // '/x...' but not '//x' — so the query param can never become an open
-      // redirect.
-      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-      if (returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//')) {
-        this.router.navigateByUrl(returnUrl);
-      } else if (this.auth.hasAdminRole()) {
+      if (this.auth.hasAdminRole()) {
         this.router.navigate(['/admin/overview']);
       } else {
-        this.router.navigate(['/dashboard']);
+        // returnUrl round-trip: when the session-expiry redirect carried the
+        // interrupted destination (e.g. /integrations), resume there instead
+        // of the default. INTERNAL paths only — '/x...' but not '//x' — so
+        // the query param can never become an open redirect.
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+        if (returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//')) {
+          this.router.navigateByUrl(returnUrl);
+        } else {
+          this.router.navigate(['/dashboard']);
+        }
       }
     } catch (err) {
       if (err instanceof UnauthorizedError) {
@@ -253,12 +254,10 @@ export class LoginComponent {
 
   private mapRole(
     backendRole: string,
-  ): 'USER' | 'MANAGER' | 'ADMIN' | 'SUPER_ADMIN' {
+  ): 'USER' | 'ADMIN' | 'SUPER_ADMIN' {
     switch (backendRole) {
       case 'ADMIN':
         return 'ADMIN';
-      case 'MANAGER':
-        return 'MANAGER';
       case 'SUPER_ADMIN':
         return 'SUPER_ADMIN';
       default:
