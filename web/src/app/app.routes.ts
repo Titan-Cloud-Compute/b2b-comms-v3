@@ -88,7 +88,9 @@ export const routes: Routes = [
     children: FEATURE_ROUTES
   },
   {
+    // Unknown URLs go through the guarded shell so authGuard decides:
+    // anonymous → /login, signed-in → app (never bounced to the login form).
     path: '**',
-    redirectTo: 'login'
+    redirectTo: 'dashboard'
   }
 ];
