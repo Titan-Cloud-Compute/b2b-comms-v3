@@ -1,33 +1,17 @@
 import { Routes } from '@angular/router';
 import { FEATURE_ROUTES } from './features/index';
-import { adminGuard, authGuard, rootRedirectGuard } from './shared/auth.guard';
-
-/** Feature routes are authenticated unless they opt out with data.public. */
-const GUARDED_FEATURE_ROUTES: Routes = FEATURE_ROUTES.map(r =>
-  r.data?.['public'] || r.redirectTo !== undefined
-    ? r
-    : { ...r, canActivate: [...(r.canActivate ?? []), authGuard] },
-);
 
 export const routes: Routes = [
-  ...GUARDED_FEATURE_ROUTES,
+  ...FEATURE_ROUTES,
   {
-    // '/' redirects by session: signed in → projects home, otherwise → /login.
     path: '',
-    pathMatch: 'full',
-    canActivate: [rootRedirectGuard],
-    children: []
+    loadComponent: () => import('./landing/landing.component').then(m => m.LandingComponent),
+    pathMatch: 'full'
   },
   {
     path: 'login',
     loadComponent: () => import('./login/login.component').then(m => m.LoginComponent),
     data: { hideSupportFooter: true }
-  },
-  {
-    // Public invitation landing: the token is redeemed via POST /api/invitations/accept.
-    path: 'accept-invite/:token',
-    loadComponent: () => import('./login/login.component').then(m => m.LoginComponent),
-    data: { hideSupportFooter: true, public: true }
   },
   {
     path: 'forgot-password',
@@ -66,7 +50,6 @@ export const routes: Routes = [
     path: '',
     loadComponent: () => import('./shared/layout.component').then(m => m.LayoutComponent),
     data: { rendersSupportFooterInLayout: true },
-    canActivate: [authGuard],
     children: [
       {
         path: 'dashboard',
@@ -78,23 +61,19 @@ export const routes: Routes = [
       },
       {
         path: 'admin',
-        loadComponent: () => import('./admin/admin.component').then(m => m.AdminComponent),
-        canActivate: [adminGuard]
+        loadComponent: () => import('./admin/admin.component').then(m => m.AdminComponent)
       },
       {
         path: 'admin/overview',
-        loadComponent: () => import('./admin/admin.component').then(m => m.AdminComponent),
-        canActivate: [adminGuard]
+        loadComponent: () => import('./admin/admin.component').then(m => m.AdminComponent)
       },
       {
         path: 'admin/users',
-        loadComponent: () => import('./admin/admin.component').then(m => m.AdminComponent),
-        canActivate: [adminGuard]
+        loadComponent: () => import('./admin/admin.component').then(m => m.AdminComponent)
       },
       {
         path: 'admin/app-settings',
-        loadComponent: () => import('./admin/admin.component').then(m => m.AdminComponent),
-        canActivate: [adminGuard]
+        loadComponent: () => import('./admin/admin.component').then(m => m.AdminComponent)
       },
     ]
   },

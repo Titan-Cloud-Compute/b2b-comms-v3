@@ -61,10 +61,11 @@ async function login(page: Page): Promise<void> {
 test.use({ serviceWorkers: 'block' });
 test.beforeEach(async ({ page }) => { await mockApi(page); });
 
-test('signed-out visit to / is sent to the login page', async ({ page }) => {
+test('landing page renders at / without redirecting to login and links to Sign in', async ({ page }) => {
   await page.goto('/#/');
-  await expect(page).toHaveURL(/#\/login/, { timeout: 10_000 });
-  await expect(page.locator('#email')).toBeVisible();
+  await page.waitForLoadState('networkidle');
+  expect(page.url()).not.toMatch(/#\/login/);
+  await expect(page.getByRole('link', { name: /sign in/i }).first()).toBeVisible();
   expect(await page.locator('body').innerText()).not.toMatch(LOCALE_GUARD);
 });
 

@@ -6,7 +6,6 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { assertActiveUser } from './auth-identity';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { randomBytes } from 'crypto';
@@ -229,8 +228,6 @@ export class AuthService {
       ok = false;
     }
     if (!ok) throw new UnauthorizedException('invalid credentials');
-    // Deactivated accounts are refused even with the right password.
-    assertActiveUser(user);
 
     return { user, token: await this.issueToken(user) };
   }
@@ -240,7 +237,6 @@ export class AuthService {
       tx.user.findUnique({ where: { id: userId } }),
     );
     if (!user) throw new NotFoundException('user not found');
-    assertActiveUser(user);
     return user;
   }
 
