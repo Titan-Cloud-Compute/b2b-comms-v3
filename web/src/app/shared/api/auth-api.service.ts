@@ -5,13 +5,13 @@ export interface ImpersonationIdentity {
   id: string;
   email: string;
   name: string;
-  role: 'USER' | 'ADMIN' | 'SUPER_ADMIN';
+  role: 'USER' | 'MANAGER' | 'ADMIN' | 'SUPER_ADMIN';
   firmId: string | null;
   firmName?: string | null;
   impersonating: boolean;
 }
 
-export type UserRole = 'ADMIN' | 'USER' | 'SUPER_ADMIN';
+export type UserRole = 'ADMIN' | 'MANAGER' | 'USER' | 'SUPER_ADMIN';
 
 export interface AuthUser {
   id: string;
@@ -79,6 +79,11 @@ export class AuthApi {
     } catch {
       return { valid: false, models: [] };
     }
+  }
+
+  /** Redeem a project invitation; the backend sets the session cookie. */
+  acceptInvitation(input: { token: string; password: string; displayName?: string }): Promise<AuthUser> {
+    return this.api.post<AuthUser>('invitations/accept', input);
   }
 
   logout(): Promise<void> {

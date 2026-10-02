@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-import { randomBytes } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 import type { User } from '@prisma/client';
 import { AuditActor, UserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
@@ -228,6 +228,10 @@ export class AuthService {
       ok = false;
     }
     if (!ok) throw new UnauthorizedException('invalid credentials');
+    // Deactivated accounts are refused even with a correct password.
+    if (user.active === false) {
+      throw new UnauthorizedException('account is deactivated');
+    }
 
     return { user, token: await this.issueToken(user) };
   }
@@ -365,11 +369,54 @@ export class AuthService {
     return true;
   }
 
+  /**
+   * Accept a project invitation: the raw token is sha256-hashed and matched
+   * against invitations.token_hash; it must be pending and unexpired. Sets the
+   * invitee's password/display name, activates them and marks it accepted.
+   */
+  async acceptInvitation(
+    token: string,
+    password: string,
+    displayName?: string,
+    now: Date = new Date(),
+  ): Promise<{ user: User; token: string }> {
+    const tokenHash = createHash('sha256').update(token).digest('hex');
+    const claimed = await this.prisma.runAsAdmin((tx) =>
+      tx.invitations.updateMany({
+        where: { token_hash: tokenHash, status: 'pending', expires_at: { gt: now } },
+        data: { status: 'accepted' },
+      }),
+    );
+    if (claimed.count !== 1) {
+      throw new BadRequestException('invalid or expired invitation');
+    }
+    const invite = await this.prisma.runAsAdmin((tx) =>
+      tx.invitations.findFirst({ where: { token_hash: tokenHash } }),
+    );
+    const email = (invite?.email ?? '').toLowerCase();
+    if (!email) throw new BadRequestException('invalid invitation');
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = await this.prisma.runAsAdmin(async (tx) => {
+      const existing = await tx.user.findUnique({ where: { email } });
+      const data = {
+        passwordHash,
+        active: true,
+        ...(displayName ? { display_name: displayName, name: displayName } : {}),
+      };
+      return existing
+        ? tx.user.update({ where: { id: existing.id }, data })
+        : tx.user.create({ data: { email, role: UserRole.USER, ...data } });
+    });
+    return { user, token: await this.issueToken(user) };
+  }
+
   async issueToken(user: User): Promise<string> {
     const payload: SessionPayload = {
       userId: user.id,
       role: user.role,
       firmId: null,
+      organizationId: user.organization_id ?? null,
     };
     return this.jwt.signAsync(payload);
   }

@@ -16,6 +16,11 @@ export class UsersService {
     });
   }
 
+  /** Session lookup for /api/users/me — bypasses row-level scoping like AuthService does. */
+  async findSessionUser(id: string): Promise<User | null> {
+    return this.prisma.runAsAdmin((tx) => tx.user.findUnique({ where: { id } }));
+  }
+
   async findById(id: string): Promise<User | null> {
     return this.prisma.user.findUnique({
       where: { id },

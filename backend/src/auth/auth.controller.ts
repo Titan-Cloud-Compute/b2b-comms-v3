@@ -14,6 +14,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import type { User } from '@prisma/client';
 import { ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
 import { SignupSchema } from './signup.schema';
@@ -27,6 +28,19 @@ import {
   SESSION_MAX_AGE_MS,
   sessionCookieOptions,
 } from './session-cookie';
+
+/** The signed-in identity returned by /api/auth/me and /api/users/me. */
+export function toIdentity(user: User) {
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.display_name ?? user.name,
+    displayName: user.display_name ?? user.name ?? null,
+    role: user.role,
+    organizationId: user.organization_id ?? null,
+    active: user.active !== false,
+  };
+}
 
 /** JWT claims present at runtime after verifyAsync (not in SessionPayload). */
 type SessionClaims = SessionPayload & { iat?: number; exp?: number };
@@ -80,7 +94,7 @@ export class AuthController {
     const parsed = LoginSchema.parse(body);
     const { user, token } = await this.authService.login(parsed);
     this.setSessionCookie(res, token);
-    return { id: user.id, email: user.email, role: user.role };
+    return toIdentity(user);
   }
 
   @Public()
@@ -135,7 +149,7 @@ export class AuthController {
   async getMe(@Req() req: Request) {
     const { userId } = req.session!;
     const user = await this.authService.getCurrentUser(userId);
-    return { id: user.id, email: user.email, name: user.name, role: user.role };
+    return toIdentity(user);
   }
 
   /** Update the signed-in user's editable profile (display name). */
@@ -209,5 +223,28 @@ export class AuthController {
 
   private cookieOptions(maxAgeMs: number) {
     return sessionCookieOptions(maxAgeMs);
+  }
+}
+
+const AcceptInvitationSchema = z.object({
+  token: z.string().min(1),
+  password: z.string().min(8),
+  displayName: z.string().min(1).max(120).optional(),
+});
+
+/** POST /api/invitations/accept — public; redeems an invite and signs the user in. */
+@ApiTags('auth')
+@Controller('api/invitations')
+export class InvitationsAcceptController {
+  constructor(private readonly authService: AuthService) {}
+
+  @Public()
+  @Post('accept')
+  @HttpCode(HttpStatus.OK)
+  async accept(@Body() body: unknown, @Res({ passthrough: true }) res: Response) {
+    const { token, password, displayName } = AcceptInvitationSchema.parse(body);
+    const result = await this.authService.acceptInvitation(token, password, displayName);
+    res.cookie(COOKIE_NAME, result.token, sessionCookieOptions(COOKIE_MAX_AGE_MS));
+    return toIdentity(result.user);
   }
 }

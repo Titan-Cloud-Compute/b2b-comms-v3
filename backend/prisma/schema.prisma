@@ -35,7 +35,8 @@ enum AuditActor {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model User {
-  id        String     @id @default(cuid())
+  // New users get uuid ids (shared data model: users.id uuid). Existing cuid ids stay valid.
+  id        String     @id @default(uuid())
   email     String     @unique
   passwordHash  String?
   name      String?
@@ -58,6 +59,7 @@ model User {
   // Nullable: template/seeded users pre-date organizations.
   organization_id  String?  @db.Uuid
   organization     organizations? @relation("OrganizationUsers", fields: [organization_id], references: [id], onDelete: SetNull)
+  // Deactivated users cannot sign in (AuthService.login refuses them).
   active  Boolean  @default(true)
   created_at  DateTime  @default(now())
 

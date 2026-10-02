@@ -2,7 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
+import { AuthController, InvitationsAcceptController } from './auth.controller';
 import { MailerService } from './mailer.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { RolesGuard } from './roles.guard';
@@ -31,7 +31,7 @@ import { DEV_JWT_SECRET_SENTINEL } from '../config/security-config';
       }),
     }),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, InvitationsAcceptController],
   providers: [
     AuthService,
     MailerService,
