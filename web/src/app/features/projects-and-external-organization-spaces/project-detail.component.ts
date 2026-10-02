@@ -16,9 +16,10 @@ import { projectErrorMessage } from './project-errors';
         <p>Loading project...</p>
       } @else if (error()) {
         <p class="error" role="alert">{{ error() }}</p>
-      } @else if (project(); as p) {
+      } @else {
+      @if (project(); as p) {
         <h1 data-testid="project-heading">{{ p.organization.name || p.name }}</h1>
-        @if (p.status === 'archived') {
+        @if (isArchived()) {
           <p class="notice">This project is archived and read-only.</p>
         }
 
@@ -36,7 +37,7 @@ import { projectErrorMessage } from './project-errors';
           }
         </section>
 
-        @if (canManage() && p.status !== 'archived') {
+        @if (canInvite()) {
           <form class="invite" data-testid="invite-form" (ngSubmit)="invite()">
             <label>
               Invite external contact (email)
@@ -59,9 +60,10 @@ import { projectErrorMessage } from './project-errors';
           }
         }
 
-        @if (isAdmin() && p.status !== 'archived') {
+        @if (canArchive()) {
           <button type="button" data-testid="archive-project" (click)="archive()" [disabled]="busy()">Archive project</button>
         }
+      }
       }
     </section>
   `,
@@ -94,6 +96,9 @@ export class ProjectDetailComponent implements OnInit {
     return role === 'ADMIN' || role === 'SUPER_ADMIN';
   });
   readonly canManage = computed(() => this.isAdmin() || this.auth.user()?.role === 'MANAGER');
+  readonly isArchived = computed(() => this.project()?.status === 'archived');
+  readonly canInvite = computed(() => this.canManage() && !this.isArchived());
+  readonly canArchive = computed(() => this.isAdmin() && !this.isArchived());
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
