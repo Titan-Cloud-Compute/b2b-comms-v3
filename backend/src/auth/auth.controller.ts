@@ -1,3 +1,4 @@
+import type { User } from '@prisma/client';
 import {
   BadRequestException,
   Body,
@@ -56,6 +57,19 @@ const PasswordResetConfirmSchema = z.object({
 const COOKIE_NAME = SESSION_COOKIE_NAME;
 const COOKIE_MAX_AGE_MS = SESSION_MAX_AGE_MS;
 
+/** Public profile shape returned by login and me (never the password hash). */
+export function toAuthUserProfile(user: User) {
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    displayName: user.displayName ?? user.name ?? null,
+    organizationId: user.organizationId ?? null,
+    active: user.active !== false,
+  };
+}
+
 @ApiTags('auth')
 @Controller('api/auth')
 export class AuthController {
@@ -80,7 +94,7 @@ export class AuthController {
     const parsed = LoginSchema.parse(body);
     const { user, token } = await this.authService.login(parsed);
     this.setSessionCookie(res, token);
-    return { id: user.id, email: user.email, role: user.role };
+    return toAuthUserProfile(user);
   }
 
   @Public()
@@ -135,7 +149,7 @@ export class AuthController {
   async getMe(@Req() req: Request) {
     const { userId } = req.session!;
     const user = await this.authService.getCurrentUser(userId);
-    return { id: user.id, email: user.email, name: user.name, role: user.role };
+    return toAuthUserProfile(user);
   }
 
   /** Update the signed-in user's editable profile (display name). */

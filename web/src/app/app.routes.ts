@@ -1,12 +1,21 @@
 import { Routes } from '@angular/router';
 import { FEATURE_ROUTES } from './features/index';
+import { authGuard, authChildGuard } from './shared/auth.guard';
 
 export const routes: Routes = [
-  ...FEATURE_ROUTES,
   {
+    // Signed-in home; the guard bounces anonymous visitors to /login.
     path: '',
-    loadComponent: () => import('./landing/landing.component').then(m => m.LandingComponent),
+    redirectTo: 'dashboard',
     pathMatch: 'full'
+  },
+  {
+    // Feature routes (stories append to FEATURE_ROUTES) are session-only.
+    // Componentless guarded parent sharing the registry array by reference.
+    path: '',
+    canActivate: [authGuard],
+    canActivateChild: [authChildGuard],
+    children: FEATURE_ROUTES
   },
   {
     path: 'login',
@@ -50,6 +59,8 @@ export const routes: Routes = [
     path: '',
     loadComponent: () => import('./shared/layout.component').then(m => m.LayoutComponent),
     data: { rendersSupportFooterInLayout: true },
+    canActivate: [authGuard],
+    canActivateChild: [authChildGuard],
     children: [
       {
         path: 'dashboard',
