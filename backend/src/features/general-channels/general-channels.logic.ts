@@ -133,7 +133,8 @@ export function isBlankMessage(bodyHtml: unknown, fileIds: unknown[] = [], refer
 
 /** Only internal Managers and Admins create channels; Employees and externals get 403. */
 export function canCreateChannel(actor: GcActor): boolean {
-  return !actor.isExternal && (actor.role === 'ADMIN' || actor.role === 'MANAGER');
+  const role = String(actor.role ?? '').toUpperCase();
+  return !actor.isExternal && (role === 'ADMIN' || role === 'MANAGER');
 }
 
 /** Internal-only channels are hidden from (and forbidden to) external users. */

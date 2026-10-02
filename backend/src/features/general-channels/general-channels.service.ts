@@ -47,7 +47,7 @@ export class GeneralChannelsService {
         const org = await tx.organizations.findUnique({ where: { id: organizationId } });
         isExternal = !!org && org.is_internal === false;
       }
-      return { userId: session.userId!, role: String(session.role ?? user?.role ?? ''), organizationId, isExternal };
+      return { userId: session.userId!, role: String(session.role ?? user?.role ?? '').toUpperCase(), organizationId, isExternal };
     });
   }
 
@@ -125,6 +125,7 @@ export class GeneralChannelsService {
     if (!canCreateChannel(actor)) throw new ForbiddenException('Only Managers and Admins can create channels');
     return this.run(async (tx) => {
       await this.assertProjectAccess(tx, actor, projectId);
+      await this.ensureDefaultChannel(tx, projectId);
       const row = await tx.channels.create({
         data: {
           project_id: projectId,

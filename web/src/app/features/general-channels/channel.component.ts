@@ -174,7 +174,7 @@ export class ChannelComponent implements OnInit {
 
   private me = computed(() => this.auth.user() as unknown as { id?: string; role?: string; name?: string; email?: string } | null);
   myName = computed(() => this.me()?.name || this.me()?.email || 'You');
-  canCreate = computed(() => ['ADMIN', 'MANAGER'].includes(String(this.me()?.role ?? '')));
+  canCreate = computed(() => ['ADMIN', 'MANAGER'].includes(String(this.me()?.role ?? '').toUpperCase()));
   pendingHere = computed(() => this.pending().filter((p) => p.channelId === this.channelId()));
   currentName = computed(() => this.channels().general.find((c) => c.id === this.channelId())?.name ?? 'general');
 
