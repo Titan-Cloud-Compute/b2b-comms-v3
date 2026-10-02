@@ -14,4 +14,21 @@ import { Routes } from '@angular/router';
  *
  * Or add routes here directly.
  */
-export const FEATURE_ROUTES: Routes = [];
+export const FEATURE_ROUTES: Routes = [
+  // Projects and External Organization Spaces. 'projects/new' must precede 'projects/:id'.
+  {
+    path: 'projects',
+    loadComponent: () =>
+      import('./projects/project-list.component').then(m => m.ProjectListComponent),
+  },
+  {
+    path: 'projects/new',
+    loadComponent: () =>
+      import('./projects/project-new.component').then(m => m.ProjectNewComponent),
+  },
+  {
+    path: 'projects/:id',
+    loadComponent: () =>
+      import('./projects/project-space.component').then(m => m.ProjectSpaceComponent),
+  },
+];

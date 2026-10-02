@@ -11,5 +11,7 @@
  *
  * Or simply add it here directly.
  */
+import { ProjectsModule } from './projects/projects.module';
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const FEATURE_MODULES: any[] = [];
+export const FEATURE_MODULES: any[] = [ProjectsModule];
