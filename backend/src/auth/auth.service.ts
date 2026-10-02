@@ -15,6 +15,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AppConfigService } from '../config/config.service';
 import type { SessionPayload } from './session.types';
 import { MailerService } from './mailer.service';
+import { assertActiveUser } from './auth-identity';
 
 /** Default org seat cap when SystemSetting ORG_MAX_SEATS is unset. */
 const DEFAULT_ORG_MAX_SEATS = 5;
@@ -228,7 +229,7 @@ export class AuthService {
       ok = false;
     }
     if (!ok) throw new UnauthorizedException('invalid credentials');
-    if (user.active === false) throw new UnauthorizedException('account deactivated');
+    assertActiveUser(user);
 
     return { user, token: await this.issueToken(user) };
   }
@@ -238,6 +239,7 @@ export class AuthService {
       tx.user.findUnique({ where: { id: userId } }),
     );
     if (!user) throw new NotFoundException('user not found');
+    assertActiveUser(user);
     return user;
   }
 
