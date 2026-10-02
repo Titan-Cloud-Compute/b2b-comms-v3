@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { FEATURE_ROUTES } from './features/index';
+import { authGuard } from './shared/auth.guard';
 
 export const routes: Routes = [
   ...FEATURE_ROUTES,
@@ -49,6 +50,7 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./shared/layout.component').then(m => m.LayoutComponent),
+    canActivate: [authGuard],
     data: { rendersSupportFooterInLayout: true },
     children: [
       {
