@@ -2,12 +2,17 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
+  OnApplicationBootstrap,
   UnauthorizedException,
 } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 // Value import (NOT `import type`) so Nest can inject it.
 import { PrismaService } from '../../prisma/prisma.service';
+
+/** Stable id of the demo workspace guaranteed at boot. */
+export const DEMO_PROJECT_ID = 'p1';
 
 export const ORGANIZATION_TYPES = ['vendor', 'customer', 'client', 'other'] as const;
 export type OrganizationType = (typeof ORGANIZATION_TYPES)[number];
@@ -56,8 +61,65 @@ export function canManage(actor: Actor): boolean {
 }
 
 @Injectable()
-export class ProjectsService {
+export class ProjectsService implements OnApplicationBootstrap {
+  private readonly logger = new Logger(ProjectsService.name);
+
   constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * Idempotently ensure the demo workspace (project "p1" for organization
+   * "Globex", with its General channel) exists so /projects/p1 resolves on a
+   * freshly seeded environment. Internal users without an organization are
+   * added as members so employees see it in their assigned list. Never throws:
+   * a failure here must not block app startup.
+   */
+  async onApplicationBootstrap(): Promise<void> {
+    try {
+      await this.ensureDemoProject();
+    } catch (err) {
+      this.logger.warn(`demo project fixture skipped: ${(err as Error).message}`);
+    }
+  }
+
+  async ensureDemoProject(): Promise<void> {
+    const projectId = DEMO_PROJECT_ID;
+    const orgId = 'org-globex';
+    await this.prisma.runAsAdmin(async (tx) => {
+      const now = new Date();
+      const org = await tx.organizations.findUnique({ where: { id: orgId } });
+      if (!org) {
+        await tx.organizations.create({
+          data: { id: orgId, name: 'Globex', type: 'customer', is_internal: false, created_at: now },
+        });
+      }
+      const project = await tx.projects.findUnique({ where: { id: projectId } });
+      if (!project) {
+        await tx.projects.create({
+          data: { id: projectId, organization_id: orgId, name: 'Globex', status: 'active', created_at: now },
+        });
+      }
+      const channel = await tx.channels.findFirst({ where: { project_id: projectId, kind: 'general' } });
+      if (!channel) {
+        await tx.channels.create({
+          data: {
+            project_id: projectId,
+            kind: 'general',
+            name: 'General',
+            internal_only: false,
+            status: 'active',
+            created_at: now,
+          },
+        });
+      }
+      const internalUsers = await tx.user.findMany({ where: { organizationId: null } });
+      for (const u of internalUsers) {
+        const member = await tx.project_members.findFirst({ where: { project_id: projectId, user_id: u.id } });
+        if (!member) {
+          await tx.project_members.create({ data: { project_id: projectId, user_id: u.id, added_at: now } });
+        }
+      }
+    });
+  }
 
   /** Load the caller's organization so external users can be isolated. */
   async resolveActor(session: { userId: string; role: string } | undefined): Promise<Actor> {
