@@ -37,10 +37,17 @@ async function mockApi(page: Page): Promise<void> {
       route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
 
     if (method === 'POST' && apiPath === 'auth/login') {
-      store.user = { id: '1', email: 'user@example.com', role: 'USER' };
+      const body = req.postDataJSON() as { email?: string } | null;
+      const email = (typeof body?.email === 'string' ? body.email : null) ?? 'user@example.com';
+      const role = email.startsWith('admin') ? 'ADMIN' : 'USER';
+      store.user = { id: '1', email, role };
       return json(store.user);
     }
-    if (method === 'GET' && apiPath === 'users/me') {
+    if (method === 'POST' && apiPath === 'auth/logout') {
+      store.user = null;
+      return json({ ok: true });
+    }
+    if (method === 'GET' && (apiPath === 'auth/me' || apiPath === 'users/me')) {
       return store.user ? json(store.user) : json({ message: 'Unauthorized' }, 401);
     }
     if (method === 'POST' && apiPath === 'auth/password-reset/request') return json({ ok: true });
@@ -50,11 +57,17 @@ async function mockApi(page: Page): Promise<void> {
   });
 }
 
-async function login(page: Page): Promise<void> {
+/** Sign in with any email; waits for navigation away from the login page. */
+async function loginAs(page: Page, email: string): Promise<void> {
   await page.goto('/#/login');
-  await page.locator('#email').fill('user@example.com');
+  await page.locator('#email').fill(email);
   await page.locator('#password').fill('password1234');
   await page.locator('button[type="submit"]').click();
+  await expect(page).not.toHaveURL(/#\/login/, { timeout: 10_000 });
+}
+
+async function login(page: Page): Promise<void> {
+  await loginAs(page, 'user@example.com');
   await expect(page).toHaveURL(/#\/dashboard/, { timeout: 10_000 });
 }
 
@@ -103,7 +116,13 @@ test('forgot-password → request → reset with token → back to login', async
 
 test('every kept route renders a data-free placeholder with no locale-specific strings', async ({ page }) => {
   await login(page);
+  let loggedInAsAdmin = false;
   for (const r of KEPT_ROUTES) {
+    // Admin-only routes need an admin session; switch once when we hit the first one.
+    if (r.startsWith('admin/') && !loggedInAsAdmin) {
+      await loginAs(page, 'admin@example.com');
+      loggedInAsAdmin = true;
+    }
     await page.goto(`/#/${r}`);
     await expect(page.locator('main.main-content [data-placeholder]').first(), r).toBeVisible();
     expect(await page.locator('body').innerText(), r).not.toMatch(LOCALE_GUARD);

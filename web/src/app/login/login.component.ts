@@ -201,7 +201,12 @@ export class LoginComponent {
       // returnUrl round-trip for every role: INTERNAL paths only — '/x...'
       // but not '//x' — so the query param can never become an open redirect.
       const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-      if (returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//')) {
+      if (
+        returnUrl &&
+        returnUrl.startsWith('/') &&
+        !returnUrl.startsWith('//') &&
+        !returnUrl.startsWith('/login')
+      ) {
         this.router.navigateByUrl(returnUrl);
       } else if (this.auth.hasAdminRole()) {
         this.router.navigate(['/admin/overview']);

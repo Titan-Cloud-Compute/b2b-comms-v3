@@ -224,6 +224,7 @@ export class AuthService {
   }
 
   setUser(user: User | null) {
+    this._sessionVerifyPromise = null; // reset memo so the next guard hits the server
     this._user.set(user);
     if (user) {
       this.write('user', JSON.stringify(user));
@@ -253,48 +254,74 @@ export class AuthService {
 
   /**
    * Ask the server whether the session cookie is still valid. Uses `fetch`
-   * (not ApiClient) to avoid a DI cycle with the HTTP layer. Tries
-   * GET /api/auth/me first, then GET /api/users/me. Resolves true only when the
-   * server returns an identity; clears the local session otherwise.
+   * (not ApiClient) to avoid a DI cycle with the HTTP layer. Checks
+   * GET /api/users/me. Resolves true only when the server returns an active
+   * identity; clears the local session otherwise. Memoised per session so
+   * multiple guards on a single navigation page only hit the server once; the
+   * memo is reset by setUser() so a logout or a fresh login re-verifies.
    */
-  async verifySession(): Promise<boolean> {
-    if (PREVIEW_MODE) return this.isAuthenticated();
-    for (const path of ['api/auth/me']) {
-      let url = path;
-      try {
-        url = new URL(path, document.baseURI).toString();
-      } catch {
-        /* fall back to relative path */
+  private _sessionVerifyPromise: Promise<boolean> | null = null;
+
+  verifySession(): Promise<boolean> {
+    if (PREVIEW_MODE) return Promise.resolve(this.isAuthenticated());
+    if (this._sessionVerifyPromise) return this._sessionVerifyPromise;
+    this._sessionVerifyPromise = this._doVerifySession();
+    return this._sessionVerifyPromise;
+  }
+
+  private async _doVerifySession(): Promise<boolean> {
+    const path = 'api/users/me';
+    let url = path;
+    try {
+      url = new URL(path, document.baseURI).toString();
+    } catch {
+      /* fall back to relative path */
+    }
+    try {
+      const res = await fetch(url, { credentials: 'include' });
+      if (res.status === 401 || res.status === 403) {
+        if (this._user()) this.setUser(null);
+        return false;
       }
-      try {
-        const res = await fetch(url, { credentials: 'include' });
-        if (res.status === 401 || res.status === 403) break;
-        if (!res.ok) continue;
-        const body = (await res.json().catch(() => null)) as Partial<User> | null;
-        if (body && typeof body === 'object' && !Array.isArray(body) && typeof body.id === 'string' && body.id) {
-          const current = this._user();
-          if (!current || current.id !== body.id) {
-            const role = ROLES.includes(body.role as User['role']) ? (body.role as User['role']) : 'USER';
-            this.setUser({
-              ...(current ?? {}),
-              ...body,
-              id: body.id,
-              email: typeof body.email === 'string' ? body.email : current?.email ?? '',
-              name: typeof body.name === 'string' ? body.name : (body.email as string) ?? '',
-              role,
-            } as User);
-          }
-          return true;
+      if (!res.ok) {
+        if (this._user()) this.setUser(null);
+        return false;
+      }
+      const body = (await res.json().catch(() => null)) as (Partial<User> & { displayName?: string; organizationId?: string; active?: boolean }) | null;
+      if (body && typeof body === 'object' && !Array.isArray(body) && typeof body.id === 'string' && body.id) {
+        if (body.active === false) {
+          if (this._user()) this.setUser(null);
+          return false;
         }
-      } catch {
-        /* network failure — try the next endpoint */
+        const current = this._user();
+        const role = ROLES.includes(body.role as User['role']) ? (body.role as User['role']) : 'USER';
+        const name = typeof body.name === 'string' ? body.name
+          : typeof body.displayName === 'string' ? body.displayName
+          : (typeof body.email === 'string' ? body.email : current?.name ?? '');
+        this.setUser({
+          ...(current ?? {}),
+          ...body,
+          id: body.id,
+          email: typeof body.email === 'string' ? body.email : current?.email ?? '',
+          name,
+          role,
+        } as User);
+        return true;
       }
+    } catch {
+      /* network failure — treat as session invalid */
     }
     if (this._user()) this.setUser(null);
     return false;
   }
 
   signOut() {
+    // Fire-and-forget logout call to invalidate the server-side session cookie.
+    const logoutUrl = (() => {
+      try { return new URL('api/auth/logout', document.baseURI).toString(); }
+      catch { return 'api/auth/logout'; }
+    })();
+    void fetch(logoutUrl, { method: 'POST', credentials: 'include' }).catch(() => undefined);
     this.setUser(null);
     this.setImpersonatingFirm(null);
   }
