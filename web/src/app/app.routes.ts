@@ -7,7 +7,7 @@ export const routes: Routes = [
   ...FEATURE_ROUTES.map(r => (r.redirectTo ? r : { ...r, canActivate: [authGuard, ...(r.canActivate ?? [])] })),
   {
     path: '',
-    loadComponent: () => import('./landing/landing.component').then(m => m.LandingComponent),
+    redirectTo: 'dashboard',
     pathMatch: 'full'
   },
   {

@@ -207,7 +207,7 @@ export class LoginComponent {
       } else if (this.auth.hasAdminRole()) {
         this.router.navigate(['/admin/overview']);
       } else {
-        this.router.navigate(['/projects']);
+        this.router.navigate(['/dashboard']);
       }
     } catch (err) {
       if (err instanceof UnauthorizedError) {
@@ -246,7 +246,7 @@ export class LoginComponent {
             role: 'USER',
           },
     );
-    this.router.navigate([isAdmin ? '/admin/overview' : '/projects']);
+    this.router.navigate([isAdmin ? '/admin/overview' : '/dashboard']);
   }
 
   private mapRole(
