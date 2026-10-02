@@ -329,6 +329,21 @@ export class AuthService {
   }
 
   signOut() {
+    // Clear the httpOnly session cookie server-side (fire-and-forget) so a
+    // reload after sign-out is bounced to /login by the server-checked guard.
+    if (!PREVIEW_MODE) {
+      let url = 'api/auth/logout';
+      try {
+        url = new URL('api/auth/logout', document.baseURI).toString();
+      } catch {
+        /* keep relative */
+      }
+      try {
+        void fetch(url, { method: 'POST', credentials: 'include' }).catch(() => undefined);
+      } catch {
+        /* ignore */
+      }
+    }
     this.setUser(null);
     this.setImpersonatingFirm(null);
   }

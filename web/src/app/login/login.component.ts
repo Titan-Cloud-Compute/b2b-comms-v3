@@ -213,10 +213,21 @@ export class LoginComponent {
         !returnUrl.startsWith('/login')
       ) {
         this.router.navigateByUrl(returnUrl);
-      } else if (this.auth.hasAdminRole()) {
-        this.router.navigate(['/admin/overview']);
+      } else if (
+        this.auth.hasAdminRole() &&
+        this.router.config.some((r) =>
+          r.path === 'admin/users' ||
+          (r.path === 'admin' && (r.children ?? []).some((c) => c.path === 'users')) ||
+          (r.children ?? []).some((c) =>
+            c.path === 'admin/users' ||
+            (c.path === 'admin' && (c.children ?? []).some((g) => g.path === 'users')),
+          ),
+        )
+      ) {
+        this.router.navigate(['/admin/users']);
       } else {
-        this.router.navigate(['/dashboard']);
+        const hasProjects = this.router.config.some((r) => r.path === 'projects');
+        this.router.navigate([hasProjects ? '/projects' : '/dashboard']);
       }
     } catch (err) {
       if (err instanceof UnauthorizedError) {
