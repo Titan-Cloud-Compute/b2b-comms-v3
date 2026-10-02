@@ -56,11 +56,17 @@ export class SettingsComponent {
 
     // Write the active tab back to the URL whenever it changes (merging so
     // other query params are preserved). `replaceUrl` avoids polluting history
-    // on every tab switch.
+    // on every tab switch. Do NOT add a ?tab= param on first load when no tab
+    // was specified in the URL — this keeps returnUrl resumption clean (the
+    // returnUrl was /settings, not /settings?tab=profile).
     effect(() => {
       const tab = this.activeTab();
       untracked(() => {
-        if (this.route.snapshot.queryParamMap.get('tab') === tab) return;
+        const current = this.route.snapshot.queryParamMap.get('tab');
+        if (current === tab) return;
+        // If there is no ?tab= in the URL yet and this is the default tab,
+        // don't pollute the URL with ?tab=profile on first render.
+        if (current === null && tab === SettingsComponent.TABS[0]) return;
         void this.router.navigate([], {
           relativeTo: this.route,
           queryParams: { tab },
