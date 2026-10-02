@@ -27,6 +27,7 @@ import {
   SESSION_MAX_AGE_MS,
   sessionCookieOptions,
 } from './session-cookie';
+import { toIdentity } from './auth-identity';
 
 /** JWT claims present at runtime after verifyAsync (not in SessionPayload). */
 type SessionClaims = SessionPayload & { iat?: number; exp?: number };
@@ -80,14 +81,7 @@ export class AuthController {
     const parsed = LoginSchema.parse(body);
     const { user, token } = await this.authService.login(parsed);
     this.setSessionCookie(res, token);
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.display_name ?? user.name,
-      role: user.role,
-      organizationId: user.organization_id ?? null,
-      active: user.active !== false,
-    };
+    return toIdentity(user);
   }
 
   @Public()
@@ -142,14 +136,7 @@ export class AuthController {
   async getMe(@Req() req: Request) {
     const { userId } = req.session!;
     const user = await this.authService.getCurrentUser(userId);
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      organizationId: user.organization_id ?? null,
-      active: user.active !== false,
-    };
+    return toIdentity(user);
   }
 
   /** Update the signed-in user's editable profile (display name). */
@@ -160,14 +147,7 @@ export class AuthController {
     const { userId } = req.session!;
     const parsed = UpdateProfileSchema.parse(body);
     const user = await this.authService.updateProfile(userId, parsed);
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      organizationId: user.organization_id ?? null,
-      active: user.active !== false,
-    };
+    return toIdentity(user);
   }
 
   /** Change the signed-in user's password, then re-issue a fresh session
