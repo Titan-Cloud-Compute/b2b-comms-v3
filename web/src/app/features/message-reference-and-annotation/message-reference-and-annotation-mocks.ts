@@ -44,7 +44,7 @@ function handlerFor(method: string, path: string): ((body?: unknown) => Promise<
       if (!/^image\/|^application\/pdf$/.test(f.mime_type)) throw fail(400, 'Only PDF and image files can be referenced');
       if (!valid(b.annotations)) throw fail(400, 'annotations: add at least one text box or drawing');
       const r: MockRef = {
-        id: `r${seq++}`, project_id: 'p1', message_id: parts[1], file_version_id: f.version_id, page_number: b.page_number ?? 1,
+        id: `r${seq++}`, project_id: 'p1', message_id: parts[1], file_version_id: f.version_id ?? '', page_number: b.page_number ?? 1,
         annotations: b.annotations!, author_id: MOCK_USER, file_available: true, mime_type: f.mime_type, updated_at: new Date().toISOString(),
       };
       refs.push(r);
