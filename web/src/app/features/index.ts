@@ -16,4 +16,6 @@ import { Routes } from '@angular/router';
  */
 import { PROJECTS_AND_EXTERNAL_ORGANIZATION_SPACES_ROUTES } from './projects-and-external-organization-spaces/projects-and-external-organization-spaces.routes';
 
-export const FEATURE_ROUTES: Routes = [...PROJECTS_AND_EXTERNAL_ORGANIZATION_SPACES_ROUTES];
+import { FILE_EXPLORER_ROUTES } from './file-explorer/file-explorer.routes';
+
+export const FEATURE_ROUTES: Routes = [...FILE_EXPLORER_ROUTES, ...PROJECTS_AND_EXTERNAL_ORGANIZATION_SPACES_ROUTES];

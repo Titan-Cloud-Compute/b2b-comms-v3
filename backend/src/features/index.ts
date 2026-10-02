@@ -13,9 +13,11 @@
  */
 import { AuthenticationAndRolesModule } from './authentication-and-roles/authentication-and-roles.module';
 import { ProjectsAndExternalOrganizationSpacesModule } from './projects-and-external-organization-spaces/projects-and-external-organization-spaces.module';
+import { FileExplorerModule } from './file-explorer/file-explorer.module';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const FEATURE_MODULES: any[] = [
   AuthenticationAndRolesModule,
   ProjectsAndExternalOrganizationSpacesModule,
+  FileExplorerModule,
 ];
