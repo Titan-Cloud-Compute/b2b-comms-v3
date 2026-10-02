@@ -1,0 +1,1096 @@
+openapi: 3.0.3
+info:
+  title: API
+  version: '1.0.0'
+paths:
+  /api/auth/login:
+    post:
+      summary: Authentication and Roles
+      operationId: postApiAuthLogin
+      responses:
+        '200':
+          description: Success
+  /api/auth/logout:
+    post:
+      summary: Authentication and Roles
+      operationId: postApiAuthLogout
+      responses:
+        '200':
+          description: Success
+  '/api/channels/{id}/messages':
+    get:
+      summary: General Channels
+      operationId: getApiChannelsByIdMessages
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetApiChannelsByIdMessagesResponse'
+    post:
+      summary: General Channels
+      operationId: postApiChannelsByIdMessages
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostApiChannelsByIdMessagesResponse'
+  '/api/channels/{id}/read':
+    post:
+      summary: Unread Message Indicators
+      operationId: postApiChannelsByIdRead
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostApiChannelsByIdReadResponse'
+  '/api/file-versions/{id}/pages/{page}':
+    get:
+      summary: Message Reference and Annotation
+      operationId: getApiFileVersionsByIdPagesByPage
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetApiFileVersionsByIdPagesByPageResponse'
+  '/api/files/{id}':
+    delete:
+      summary: File Explorer
+      operationId: deleteApiFilesById
+      responses:
+        '200':
+          description: Success
+    patch:
+      summary: File Explorer
+      operationId: patchApiFilesById
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatchApiFilesByIdResponse'
+  '/api/files/{id}/download':
+    get:
+      summary: File Explorer
+      operationId: getApiFilesByIdDownload
+      responses:
+        '200':
+          description: Success
+  '/api/files/{id}/versions':
+    get:
+      summary: File Explorer
+      operationId: getApiFilesByIdVersions
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetApiFilesByIdVersionsResponse'
+  '/api/folders/{id}':
+    delete:
+      summary: File Explorer
+      operationId: deleteApiFoldersById
+      responses:
+        '200':
+          description: Success
+    patch:
+      summary: File Explorer
+      operationId: patchApiFoldersById
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatchApiFoldersByIdResponse'
+  '/api/invitations/{id}/resend':
+    post:
+      summary: Projects and External Organization Spaces
+      operationId: postApiInvitationsByIdResend
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostApiInvitationsByIdResendResponse'
+  /api/invitations/accept:
+    post:
+      summary: Authentication and Roles
+      operationId: postApiInvitationsAccept
+      responses:
+        '200':
+          description: Success
+  '/api/messages/{id}':
+    delete:
+      summary: General Channels
+      operationId: deleteApiMessagesById
+      responses:
+        '200':
+          description: Success
+    patch:
+      summary: General Channels
+      operationId: patchApiMessagesById
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatchApiMessagesByIdResponse'
+  '/api/messages/{id}/reference':
+    post:
+      summary: Message Reference and Annotation
+      operationId: postApiMessagesByIdReference
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostApiMessagesByIdReferenceResponse'
+  /api/projects:
+    get:
+      summary: Projects and External Organization Spaces
+      operationId: getApiProjects
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetApiProjectsResponse'
+    post:
+      summary: Projects and External Organization Spaces
+      operationId: postApiProjects
+      responses:
+        '200':
+          description: Success
+  '/api/projects/{id}':
+    get:
+      summary: Projects and External Organization Spaces
+      operationId: getApiProjectsById
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetApiProjectsByIdResponse'
+    patch:
+      summary: Projects and External Organization Spaces
+      operationId: patchApiProjectsById
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatchApiProjectsByIdResponse'
+  '/api/projects/{id}/archive':
+    post:
+      summary: Projects and External Organization Spaces
+      operationId: postApiProjectsByIdArchive
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostApiProjectsByIdArchiveResponse'
+  '/api/projects/{id}/channels':
+    get:
+      summary: General Channels
+      operationId: getApiProjectsByIdChannels
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetApiProjectsByIdChannelsResponse'
+    post:
+      summary: General Channels
+      operationId: postApiProjectsByIdChannels
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostApiProjectsByIdChannelsResponse'
+  '/api/projects/{id}/files':
+    get:
+      summary: File Explorer
+      operationId: getApiProjectsByIdFiles
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetApiProjectsByIdFilesResponse'
+    post:
+      summary: File Explorer
+      operationId: postApiProjectsByIdFiles
+      responses:
+        '200':
+          description: Success
+  '/api/projects/{id}/folders':
+    post:
+      summary: File Explorer
+      operationId: postApiProjectsByIdFolders
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostApiProjectsByIdFoldersResponse'
+  '/api/projects/{id}/invitations':
+    post:
+      summary: Projects and External Organization Spaces
+      operationId: postApiProjectsByIdInvitations
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostApiProjectsByIdInvitationsResponse'
+  '/api/projects/{id}/members':
+    post:
+      summary: Projects and External Organization Spaces
+      operationId: postApiProjectsByIdMembers
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostApiProjectsByIdMembersResponse'
+  '/api/projects/{id}/questions':
+    get:
+      summary: Active Question Chats
+      operationId: getApiProjectsByIdQuestions
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetApiProjectsByIdQuestionsResponse'
+    post:
+      summary: Active Question Chats
+      operationId: postApiProjectsByIdQuestions
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostApiProjectsByIdQuestionsResponse'
+  '/api/projects/{id}/unread':
+    get:
+      summary: Unread Message Indicators
+      operationId: getApiProjectsByIdUnread
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetApiProjectsByIdUnreadResponse'
+  '/api/questions/{id}/resolve':
+    delete:
+      summary: Active Question Chats
+      operationId: deleteApiQuestionsByIdResolve
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteApiQuestionsByIdResolveResponse'
+    post:
+      summary: Active Question Chats
+      operationId: postApiQuestionsByIdResolve
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostApiQuestionsByIdResolveResponse'
+  /api/realtime/socket:
+    get:
+      summary: General Channels
+      operationId: getApiRealtimeSocket
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetApiRealtimeSocketResponse'
+  '/api/references/{id}':
+    delete:
+      summary: Message Reference and Annotation
+      operationId: deleteApiReferencesById
+      responses:
+        '200':
+          description: Success
+    get:
+      summary: Message Reference and Annotation
+      operationId: getApiReferencesById
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetApiReferencesByIdResponse'
+    put:
+      summary: Message Reference and Annotation
+      operationId: putApiReferencesById
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PutApiReferencesByIdResponse'
+  /api/users:
+    get:
+      summary: Authentication and Roles
+      operationId: getApiUsers
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetApiUsersResponse'
+    post:
+      summary: Authentication and Roles
+      operationId: postApiUsers
+      responses:
+        '200':
+          description: Success
+  '/api/users/{id}':
+    patch:
+      summary: Authentication and Roles
+      operationId: patchApiUsersById
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatchApiUsersByIdResponse'
+components:
+  schemas:
+    ChannelReadState:
+      type: object
+      properties:
+        channel_id:
+          type: string
+          format: uuid
+        last_read_message_id:
+          type: string
+          format: uuid
+        unread_count:
+          type: integer
+        user_id:
+          type: string
+          format: uuid
+    Channels:
+      type: object
+      properties:
+        created_at:
+          type: string
+        created_by:
+          type: string
+          format: uuid
+        id:
+          type: string
+          format: uuid
+        internal_only:
+          type: boolean
+        kind:
+          type: string
+        name:
+          type: string
+        project_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+    FileVersions:
+      type: object
+      properties:
+        file_id:
+          type: string
+          format: uuid
+        id:
+          type: string
+          format: uuid
+        size_bytes:
+          type: string
+        storage_key:
+          type: string
+        uploaded_at:
+          type: string
+        uploaded_by:
+          type: string
+          format: uuid
+        version_number:
+          type: integer
+    Files:
+      type: object
+      properties:
+        current_version_id:
+          type: string
+          format: uuid
+        deleted_at:
+          type: string
+        folder_id:
+          type: string
+          format: uuid
+        id:
+          type: string
+          format: uuid
+        mime_type:
+          type: string
+        name:
+          type: string
+        project_id:
+          type: string
+          format: uuid
+    Folders:
+      type: object
+      properties:
+        created_by:
+          type: string
+          format: uuid
+        deleted_at:
+          type: string
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        parent_id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+    Invitations:
+      type: object
+      properties:
+        email:
+          type: string
+        expires_at:
+          type: string
+        id:
+          type: string
+          format: uuid
+        invited_by:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+        token_hash:
+          type: string
+    MessageAttachments:
+      type: object
+      properties:
+        file_id:
+          type: string
+          format: uuid
+        id:
+          type: string
+          format: uuid
+        message_id:
+          type: string
+          format: uuid
+    Messages:
+      type: object
+      properties:
+        author_id:
+          type: string
+          format: uuid
+        body_html:
+          type: string
+        channel_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+        deleted_at:
+          type: string
+        edited_at:
+          type: string
+        id:
+          type: string
+          format: uuid
+    Organizations:
+      type: object
+      properties:
+        created_at:
+          type: string
+        id:
+          type: string
+          format: uuid
+        is_internal:
+          type: boolean
+        name:
+          type: string
+        type:
+          type: string
+    ProjectMembers:
+      type: object
+      properties:
+        added_at:
+          type: string
+        project_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+    Projects:
+      type: object
+      properties:
+        created_at:
+          type: string
+        created_by:
+          type: string
+          format: uuid
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        organization_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+    QuestionResolutions:
+      type: object
+      properties:
+        channel_id:
+          type: string
+          format: uuid
+        resolved_at:
+          type: string
+        resolved_by:
+          type: string
+          format: uuid
+        side:
+          type: string
+    References:
+      type: object
+      properties:
+        annotations:
+          type: string
+        author_id:
+          type: string
+          format: uuid
+        file_version_id:
+          type: string
+          format: uuid
+        id:
+          type: string
+          format: uuid
+        message_id:
+          type: string
+          format: uuid
+        page_number:
+          type: integer
+        updated_at:
+          type: string
+    Users:
+      type: object
+      properties:
+        active:
+          type: boolean
+        created_at:
+          type: string
+        display_name:
+          type: string
+        email:
+          type: string
+        id:
+          type: string
+          format: uuid
+        organization_id:
+          type: string
+          format: uuid
+        password_hash:
+          type: string
+        role:
+          type: string
+    DeleteApiQuestionsByIdResolveResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        resolved_sides:
+          type: string
+        status:
+          type: string
+    GetApiChannelsByIdMessagesResponse:
+      type: object
+      properties:
+        items[].attachments[].file_id:
+          type: string
+          format: uuid
+        items[].attachments[].name:
+          type: string
+        items[].author.display_name:
+          type: string
+        items[].author.id:
+          type: string
+          format: uuid
+        items[].body_html:
+          type: string
+        items[].created_at:
+          type: string
+        items[].edited_at:
+          type: string
+        items[].id:
+          type: string
+          format: uuid
+        items[].reference_id:
+          type: string
+          format: uuid
+        next_cursor:
+          type: string
+    GetApiFileVersionsByIdPagesByPageResponse:
+      type: object
+      properties:
+        body:
+          type: string
+        content_type:
+          type: string
+    GetApiFilesByIdVersionsResponse:
+      type: object
+      properties:
+        items[].id:
+          type: string
+          format: uuid
+        items[].size_bytes:
+          type: string
+        items[].uploaded_at:
+          type: string
+        items[].uploaded_by:
+          type: string
+          format: uuid
+        items[].version_number:
+          type: integer
+    GetApiProjectsResponse:
+      type: object
+      properties:
+        items[].id:
+          type: string
+          format: uuid
+        items[].name:
+          type: string
+        items[].organization.id:
+          type: string
+          format: uuid
+        items[].organization.name:
+          type: string
+        items[].organization.type:
+          type: string
+        items[].status:
+          type: string
+        page:
+          type: integer
+        total:
+          type: integer
+    GetApiProjectsByIdResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        members[].display_name:
+          type: string
+        members[].id:
+          type: string
+          format: uuid
+        members[].role:
+          type: string
+        name:
+          type: string
+        organization.id:
+          type: string
+          format: uuid
+        organization.name:
+          type: string
+        organization.type:
+          type: string
+        status:
+          type: string
+    GetApiProjectsByIdChannelsResponse:
+      type: object
+      properties:
+        general[].id:
+          type: string
+          format: uuid
+        general[].internal_only:
+          type: boolean
+        general[].name:
+          type: string
+        general[].unread_count:
+          type: integer
+        questions[].id:
+          type: string
+          format: uuid
+        questions[].name:
+          type: string
+        questions[].status:
+          type: string
+        questions[].unread_count:
+          type: integer
+    GetApiProjectsByIdFilesResponse:
+      type: object
+      properties:
+        files[].id:
+          type: string
+          format: uuid
+        files[].mime_type:
+          type: string
+        files[].name:
+          type: string
+        files[].size_bytes:
+          type: string
+        files[].uploaded_at:
+          type: string
+        files[].uploaded_by:
+          type: string
+          format: uuid
+        files[].version_number:
+          type: integer
+        folder.breadcrumbs[].id:
+          type: string
+          format: uuid
+        folder.breadcrumbs[].name:
+          type: string
+        folder.id:
+          type: string
+          format: uuid
+        folder.name:
+          type: string
+        folders[].id:
+          type: string
+          format: uuid
+        folders[].name:
+          type: string
+    GetApiProjectsByIdQuestionsResponse:
+      type: object
+      properties:
+        items[].id:
+          type: string
+          format: uuid
+        items[].name:
+          type: string
+        items[].resolved_sides:
+          type: string
+        items[].status:
+          type: string
+        items[].unread_count:
+          type: integer
+    GetApiProjectsByIdUnreadResponse:
+      type: object
+      properties:
+        counts[].channel_id:
+          type: string
+          format: uuid
+        counts[].unread_count:
+          type: integer
+    GetApiRealtimeSocketResponse:
+      type: object
+      properties:
+        channel_id:
+          type: string
+          format: uuid
+        payload:
+          type: string
+        type:
+          type: string
+    GetApiReferencesByIdResponse:
+      type: object
+      properties:
+        annotations:
+          type: string
+        author_id:
+          type: string
+          format: uuid
+        can_edit:
+          type: boolean
+        file_available:
+          type: boolean
+        file_version_id:
+          type: string
+          format: uuid
+        id:
+          type: string
+          format: uuid
+        message_id:
+          type: string
+          format: uuid
+        page_number:
+          type: integer
+    GetApiUsersResponse:
+      type: object
+      properties:
+        items[].active:
+          type: boolean
+        items[].created_at:
+          type: string
+        items[].display_name:
+          type: string
+        items[].email:
+          type: string
+        items[].id:
+          type: string
+          format: uuid
+        items[].organization_id:
+          type: string
+          format: uuid
+        items[].role:
+          type: string
+        page:
+          type: integer
+        total:
+          type: integer
+    PatchApiFilesByIdResponse:
+      type: object
+      properties:
+        folder_id:
+          type: string
+          format: uuid
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+    PatchApiFoldersByIdResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        parent_id:
+          type: string
+          format: uuid
+    PatchApiMessagesByIdResponse:
+      type: object
+      properties:
+        body_html:
+          type: string
+        edited_at:
+          type: string
+        id:
+          type: string
+          format: uuid
+    PatchApiProjectsByIdResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        status:
+          type: string
+    PatchApiUsersByIdResponse:
+      type: object
+      properties:
+        active:
+          type: boolean
+        display_name:
+          type: string
+        email:
+          type: string
+        id:
+          type: string
+          format: uuid
+        role:
+          type: string
+    PostApiChannelsByIdMessagesResponse:
+      type: object
+      properties:
+        author_id:
+          type: string
+          format: uuid
+        body_html:
+          type: string
+        channel_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+        id:
+          type: string
+          format: uuid
+    PostApiChannelsByIdReadResponse:
+      type: object
+      properties:
+        channel_id:
+          type: string
+          format: uuid
+        last_read_message_id:
+          type: string
+          format: uuid
+        unread_count:
+          type: integer
+    PostApiInvitationsByIdResendResponse:
+      type: object
+      properties:
+        delivery:
+          type: string
+        expires_at:
+          type: string
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+    PostApiMessagesByIdReferenceResponse:
+      type: object
+      properties:
+        annotations:
+          type: string
+        author_id:
+          type: string
+          format: uuid
+        file_version_id:
+          type: string
+          format: uuid
+        id:
+          type: string
+          format: uuid
+        message_id:
+          type: string
+          format: uuid
+        page_number:
+          type: integer
+    PostApiProjectsByIdArchiveResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+    PostApiProjectsByIdChannelsResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        internal_only:
+          type: boolean
+        kind:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+    PostApiProjectsByIdFoldersResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        parent_id:
+          type: string
+          format: uuid
+    PostApiProjectsByIdInvitationsResponse:
+      type: object
+      properties:
+        delivery:
+          type: string
+        email:
+          type: string
+        expires_at:
+          type: string
+        id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+    PostApiProjectsByIdMembersResponse:
+      type: object
+      properties:
+        added_at:
+          type: string
+        project_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+    PostApiProjectsByIdQuestionsResponse:
+      type: object
+      properties:
+        first_message_id:
+          type: string
+          format: uuid
+        id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+    PostApiQuestionsByIdResolveResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        resolved_sides:
+          type: string
+        status:
+          type: string
+    PutApiReferencesByIdResponse:
+      type: object
+      properties:
+        annotations:
+          type: string
+        id:
+          type: string
+          format: uuid
+        page_number:
+          type: integer
+        updated_at:
+          type: string
