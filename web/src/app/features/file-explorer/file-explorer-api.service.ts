@@ -14,6 +14,7 @@ export interface FileItem {
   mime_type: string;
   size_bytes: number;
   uploaded_by: string | null;
+  uploaded_by_name?: string | null;
   uploaded_at: string | null;
   version_number: number;
   folder_id?: string | null;
@@ -28,6 +29,7 @@ export interface FileVersion {
   version_number: number;
   size_bytes: number;
   uploaded_by: string | null;
+  uploaded_by_name?: string | null;
   uploaded_at: string | null;
 }
 
@@ -97,7 +99,10 @@ export class FileExplorerApiService {
     const path = `projects/${encodeURIComponent(projectId)}/files`;
     if (this.base instanceof MockApiClient) {
       onProgress(100);
-      return this.call('POST', path);
+      return this.call('POST', path, {
+        folder_id: folderId,
+        files: files.map((f) => ({ name: f.name, size: f.size, type: f.type })),
+      });
     }
     const form = new FormData();
     for (const f of files) form.append('files', f, f.name);

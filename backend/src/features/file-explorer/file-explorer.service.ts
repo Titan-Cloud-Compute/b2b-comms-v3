@@ -41,6 +41,7 @@ export interface FileDto {
   mime_type: string;
   size_bytes: number;
   uploaded_by: string | null;
+  uploaded_by_name: string | null;
   uploaded_at: string | null;
   version_number: number;
   folder_id: string | null;
@@ -131,6 +132,17 @@ export class FileExplorerService {
     return folder;
   }
 
+  /** Human-readable uploader (display name, else email); null when unknown. */
+  private async uploaderName(tx: Tx, userId: string | null | undefined): Promise<string | null> {
+    if (!userId) return null;
+    try {
+      const u = await (tx as any).user?.findUnique?.({ where: { id: userId } });
+      return (u?.displayName || u?.display_name || u?.email || null) as string | null;
+    } catch {
+      return null;
+    }
+  }
+
   private async toFileDto(tx: Tx, file: any): Promise<FileDto> {
     const v = file.current_version_id
       ? await tx.file_versions.findUnique({ where: { id: file.current_version_id } })
@@ -141,6 +153,7 @@ export class FileExplorerService {
       mime_type: file.mime_type ?? 'application/octet-stream',
       size_bytes: v?.size_bytes != null ? Number(v.size_bytes) : 0,
       uploaded_by: v?.uploaded_by ?? null,
+      uploaded_by_name: await this.uploaderName(tx, v?.uploaded_by),
       uploaded_at: v?.uploaded_at ? new Date(v.uploaded_at).toISOString() : null,
       version_number: v?.version_number ?? 1,
       folder_id: file.folder_id ?? null,
@@ -236,10 +249,23 @@ export class FileExplorerService {
     });
   }
 
-  async versions(actor: FeActor, fileId: string) {
+  async versions(actor: FeActor, fileId: string): Promise<{
+    items: {
+      id: string;
+      version_number: number;
+      size_bytes: number;
+      uploaded_by: string | null;
+      uploaded_by_name: string | null;
+      uploaded_at: string | null;
+    }[];
+  }> {
     return this.run(async (tx) => {
       await this.loadFile(tx, actor, fileId);
       const rows = await tx.file_versions.findMany({ where: { file_id: fileId } });
+      const names = new Map<string, string | null>();
+      for (const v of rows as any[]) {
+        if (v.uploaded_by && !names.has(v.uploaded_by)) names.set(v.uploaded_by, await this.uploaderName(tx, v.uploaded_by));
+      }
       return {
         items: rows
           .map((v: any) => ({
@@ -247,6 +273,7 @@ export class FileExplorerService {
             version_number: v.version_number ?? 1,
             size_bytes: v.size_bytes != null ? Number(v.size_bytes) : 0,
             uploaded_by: v.uploaded_by ?? null,
+            uploaded_by_name: v.uploaded_by ? names.get(v.uploaded_by) ?? null : null,
             uploaded_at: v.uploaded_at ? new Date(v.uploaded_at).toISOString() : null,
           }))
           .sort((a: any, b: any) => b.version_number - a.version_number),

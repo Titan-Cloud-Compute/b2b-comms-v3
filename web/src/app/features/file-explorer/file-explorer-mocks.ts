@@ -36,7 +36,27 @@ function handlerFor(method: string, path: string): ((body?: unknown) => Promise<
     };
   }
   if (parts[0] === 'projects' && parts[2] === 'files' && method === 'POST') {
-    return async () => ({ items: [] });
+    return async (body) => {
+      const b = (body ?? {}) as { folder_id?: string | null; files?: { name: string; size: number; type: string }[] };
+      const folderId = b.folder_id ?? null;
+      const items: MockFile[] = [];
+      for (const u of b.files ?? []) {
+        const existing = files.find((f) => f.name === u.name && f.folder_id === folderId);
+        const now = new Date().toISOString();
+        if (existing) {
+          Object.assign(existing, { size_bytes: u.size, uploaded_at: now, version_number: existing.version_number + 1 });
+          items.push(existing);
+        } else {
+          const f: MockFile = {
+            id: `fi${seq++}`, name: u.name, mime_type: u.type || 'application/octet-stream', size_bytes: u.size,
+            uploaded_by: 'u-manager', uploaded_at: now, version_number: 1, folder_id: folderId,
+          };
+          files.push(f);
+          items.push(f);
+        }
+      }
+      return { items };
+    };
   }
   if (parts[0] === 'projects' && parts[2] === 'folders' && method === 'POST') {
     return async (body) => {

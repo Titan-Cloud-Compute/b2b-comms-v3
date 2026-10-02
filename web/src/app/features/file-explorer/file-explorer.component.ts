@@ -88,7 +88,7 @@ export function checkUpload(file: File): string | null {
           @for (f of files(); track f.id) {
             <li class="item file" data-testid="fe-file">
               <span class="name">{{ f.name }}</span>
-              <span class="meta">{{ formatSize(f.size_bytes) }} · {{ f.mime_type }} · {{ f.uploaded_by }} · {{ formatDate(f.uploaded_at) }} · v{{ f.version_number }}</span>
+              <span class="meta">{{ formatSize(f.size_bytes) }} · {{ f.mime_type }} · {{ f.uploaded_by_name || f.uploaded_by }} · {{ formatDate(f.uploaded_at) }} · v{{ f.version_number }}</span>
               <span class="actions">
                 <button type="button" data-testid="fe-download" (click)="download(f)">Download</button>
                 <button type="button" data-testid="fe-versions" (click)="showVersions(f)">Versions</button>
@@ -109,7 +109,7 @@ export function checkUpload(file: File): string | null {
           <h2>Versions of {{ vf.name }}</h2>
           <ul>
             @for (v of versions(); track v.id) {
-              <li>v{{ v.version_number }} · {{ formatSize(v.size_bytes) }} · {{ v.uploaded_by }} · {{ formatDate(v.uploaded_at) }}</li>
+              <li>v{{ v.version_number }} · {{ formatSize(v.size_bytes) }} · {{ v.uploaded_by_name || v.uploaded_by }} · {{ formatDate(v.uploaded_at) }}</li>
             }
           </ul>
           <button type="button" (click)="versionsFor.set(null)">Close</button>
