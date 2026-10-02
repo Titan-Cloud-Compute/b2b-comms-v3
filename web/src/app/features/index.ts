@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { MESSAGE_REFERENCE_ROUTES } from './message-references/message-references.routes';
 
 /**
  * Feature route registry.
@@ -35,6 +36,8 @@ export const FEATURE_ROUTES: Routes = [
     path: 'projects/:id/files/:folderId',
     loadComponent: () => import('./files/file-explorer.component').then(m => m.FileExplorerComponent),
   },
+  // Story: Message Reference and Annotation. Must precede bare 'projects/:id'.
+  ...MESSAGE_REFERENCE_ROUTES,
   // General Channels. Must precede the bare 'projects/:id' entry for readability (Angular matches full paths).
   {
     path: 'projects/:id/channels/:channelId',
