@@ -83,9 +83,9 @@ export class AuthController {
     return {
       id: user.id,
       email: user.email,
-      name: user.display_name ?? user.name,
+      name: user.displayName ?? user.name,
       role: user.role,
-      organizationId: user.organization_id ?? null,
+      organizationId: user.organizationId ?? null,
       active: user.active !== false,
     };
   }
@@ -147,7 +147,7 @@ export class AuthController {
       email: user.email,
       name: user.name,
       role: user.role,
-      organizationId: user.organization_id ?? null,
+      organizationId: user.organizationId ?? null,
       active: user.active !== false,
     };
   }
@@ -165,7 +165,7 @@ export class AuthController {
       email: user.email,
       name: user.name,
       role: user.role,
-      organizationId: user.organization_id ?? null,
+      organizationId: user.organizationId ?? null,
       active: user.active !== false,
     };
   }

@@ -54,10 +54,10 @@ model User {
   tokensConsumed RegistrationToken[] @relation("ConsumedTokens")
   passwordResetTokens PasswordResetToken[]
   password_hash  String?
-  display_name  String?
-  organization_id  String?
-  active  Boolean?
-  created_at  DateTime?
+  displayName    String?  @map("display_name")
+  organizationId String?  @map("organization_id")
+  active         Boolean  @default(true)
+  created_at     DateTime?
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
